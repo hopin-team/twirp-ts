@@ -139,25 +139,6 @@ export class InternalServerErrorWith extends InternalServerError {
     }
 }
 
-/**
- * Write http error response
- * @param res
- * @param error
- */
-export function writeError(res: http.ServerResponse, error: Error | TwirpError): void {
-    let twirpError: TwirpError;
-
-    if (error instanceof TwirpError) {
-        twirpError = error;
-    } else {
-        twirpError = new InternalServerErrorWith(error);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = httpStatusFromErrorCode(twirpError.code);
-    res.end(twirpError.toJSON());
-}
-
 export enum TwirpErrorCode {
     // Canceled indicates the operation was cancelled (typically by the caller).
     Canceled = 'canceled',
@@ -254,7 +235,7 @@ export enum TwirpErrorCode {
 // ServerHTTPStatusFromErrorCode maps a Twirp error type into a similar HTTP
 // response status. It is used by the Twirp server handler to set the HTTP
 // response status code. Returns 0 if the ErrorCode is invalid.
-function httpStatusFromErrorCode(code: TwirpErrorCode): number {
+export function httpStatusFromErrorCode(code: TwirpErrorCode): number {
     switch (code) {
         case TwirpErrorCode.Canceled:
             return 408 // RequestTimeout
