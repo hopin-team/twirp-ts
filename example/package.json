@@ -1,0 +1,19 @@
+{
+  "name": "twirp-ts-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "twirp-ts": "^1.0.0-alpha-1.7"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0"
+  }
+}
