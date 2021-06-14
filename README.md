@@ -74,7 +74,7 @@ http.createServer(server.httpHandler())
 #### Path prefix
 
 By default the server uses the `/twirp` prefix for every request.
-You can change or remove the prefix with the method `withPrefix("")`
+You can change or remove the prefix passing the `prefix` option to the handler
 
 ```ts
 const server = createHaberdasherServer({
@@ -83,11 +83,34 @@ const server = createHaberdasherServer({
     },
 });
 
-server.withPrefix("/some-other-prefix")
-
-http.createServer(server.httpHandler())
-    .listen(8080);
+http.createServer(server.httpHandler({
+    prefix: "/custom-prefix", // or false to remove it
+})).listen(8080);
 ```
+
+### Integrating with express
+
+If you'd like to use `express` as your drop in solution to add more routes, or middlewares you can do as following:
+
+```ts
+const server = createHaberdasherServer({
+    async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
+        return Hat.fromPartial({
+            name: "wooow",
+        });
+    },
+});
+
+const app = express();
+
+app.use("/twirp", server.httpHandler({
+    prefix: false,
+}));
+
+http.createServer(app).listen(8000);
+```
+
+it is **important** that you disable the prefix from the default handler if you provide one.
 
 ### Server Hooks & Interceptors
 
