@@ -15,7 +15,8 @@ import {
  */
 interface TwirpServerOptions<T> {
     service: T
-    createContext: (req: http.IncomingMessage, res: http.ServerResponse) => TwirpContext
+    packageName: string
+    serviceName: string
     matchRoute: (method: string, events: RouterEvents) => TwirpHandler<T>
 }
 
@@ -64,11 +65,17 @@ export enum TwirpContentType {
  */
 export class TwirpServer<T> {
 
+    public readonly packageName: string;
+    public readonly serviceName: string;
+
     private hooks: ServerHooks[] = [];
     private interceptors: Interceptor<any, any>[] = [];
     protected pathPrefix: string = "/twirp";
 
-    constructor(private readonly options: TwirpServerOptions<T>) {}
+    constructor(private readonly options: TwirpServerOptions<T>) {
+        this.packageName = options.packageName;
+        this.serviceName = options.serviceName;
+    }
 
     /**
      * The http handler for twirp
@@ -116,13 +123,30 @@ export class TwirpServer<T> {
     }
 
     /**
+     * Create a twirp context
+     * @param req
+     * @param res
+     * @private
+     */
+    protected createContext(req: http.IncomingMessage, res: http.ServerResponse): TwirpContext {
+        return {
+            packageName: this.packageName,
+            serviceName: this.serviceName,
+            methodName: "",
+            contentType: getContentType(req.headers["content-type"]),
+            req: req,
+            res: res,
+        }
+    }
+
+    /**
      * Twrip server http handler implementation
      * @param req
      * @param resp
      * @private
      */
     private async _httpHandler(req: http.IncomingMessage, resp: http.ServerResponse) {
-        const ctx = this.options.createContext(req, resp);
+        const ctx = this.createContext(req, resp);
 
         try {
             await this.invokeHook("requestReceived", ctx);

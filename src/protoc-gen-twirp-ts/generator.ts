@@ -5,7 +5,6 @@ const TwirpServer = imp("TwirpServer@twirp-ts");
 const Interceptor = imp("Interceptor@twirp-ts");
 const RouterEvents = imp("RouterEvents@twirp-ts");
 const chainInterceptors = imp("chainInterceptors@twirp-ts");
-const getContentType = imp("getContentType@twirp-ts");
 const TwirpContentType = imp("TwirpContentType@twirp-ts");
 const TwirpContext = imp("TwirpContext@twirp-ts");
 const TwirpError = imp("TwirpError@twirp-ts");
@@ -181,14 +180,8 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
         export function create${importService}Server(service: ${importService}Twirp) {
             return new ${TwirpServer}<${importService}Twirp>({
                 service,
-                createContext: (req, res) => ({
-                     packageName: "${file.package}",
-                     serviceName: "${importService}",
-                     methodName:  "",
-                     contentType: ${getContentType}(req.headers["content-type"]),
-                     req: req,
-                     res: res,
-                }),
+                packageName: "${file.package}",
+                serviceName: "${importService}",
                 matchRoute: match${importService}Route,
             })
         }

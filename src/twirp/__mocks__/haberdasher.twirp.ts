@@ -1,7 +1,6 @@
 import { Haberdasher, Size, Hat } from "./service";
 import {
   TwirpServer,
-  getContentType,
   RouterEvents,
   TwirpError,
   TwirpErrorCode,
@@ -70,14 +69,8 @@ export interface HaberdasherTwirp {
 export function createHaberdasherServer(service: HaberdasherTwirp) {
   return new TwirpServer<HaberdasherTwirp>({
     service,
-    createContext: (req, res) => ({
-      packageName: "twirp.example.haberdasher",
-      serviceName: "Haberdasher",
-      methodName: "",
-      contentType: getContentType(req.headers["content-type"]),
-      req: req,
-      res: res,
-    }),
+    packageName: "twirp.example.haberdasher",
+    serviceName: "Haberdasher",
     matchRoute: matchHaberdasherRoute,
   });
 }
