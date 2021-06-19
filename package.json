@@ -6,6 +6,9 @@
   "bin": {
     "protoc-gen-twirp_ts": "./protoc-gen-twirp_ts"
   },
+  "repository": {
+    "url": "https://github.com/hopin-team/twirp-ts"
+  },
   "scripts": {
     "test": "jest",
     "build": "tsc"
