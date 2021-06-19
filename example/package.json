@@ -12,7 +12,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "express": "^4.17.1",
-    "twirp-ts": "^1.1.0"
+    "twirp-ts": "^1.2.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.12",
