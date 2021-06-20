@@ -40,12 +40,12 @@ Make sure you have `protoc` or `buf` installed.
 
 **Mac:**
 ```bash
-brew install protoc
+brew install protobuf
 ```
 
 **Linux:**
 ```bash
-apt-get install protoc
+apt-get install protobuf
 ```
 
 **Optional**: <br />
