@@ -146,16 +146,30 @@ function genTwirpService(ctx: any, file: FileDescriptorProto) {
     return file.service.map((service) => {
         const importService = imp(`${service.name}@./${file.name.replace(".proto", "")}`)
 
-        const methods = service.method.map((method) => {
+        const serverMethods = service.method.map((method) => {
             return code`
                 ${method.name}(ctx: ${TwirpContext}, request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
             `
         })
 
+        const methodEnum = service.method.map((method) => {
+            return code`${method.name} = "${method.name}",`
+        })
+
+        const methodList = service.method.map((method) => {
+            return code`${importService}Method.${method.name}`
+        })
+
         return code`
             export interface ${importService}Twirp {
-                ${joinCode(methods, {on: `\n`})}
+                ${joinCode(serverMethods, {on: `\n`})}
             }
+            
+            export enum ${importService}Method {
+                ${joinCode(methodEnum, {on: "\n"})}
+            }
+            
+            export const ${importService}MethodList = [${joinCode(methodList, {on: ","})}];
         `
     });
 }
@@ -182,6 +196,7 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
                 service,
                 packageName: "${file.package}",
                 serviceName: "${importService}",
+                methodList: ${importService}MethodList,
                 matchRoute: match${importService}Route,
             })
         }

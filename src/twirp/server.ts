@@ -13,10 +13,11 @@ import {
 /**
  * Options passed to the server implementation
  */
-interface TwirpServerOptions<T> {
+interface TwirpServerOptions<T extends object> {
     service: T
     packageName: string
     serviceName: string
+    methodList:  keys<T>
     matchRoute: (method: string, events: RouterEvents) => TwirpHandler<T>
 }
 
@@ -60,21 +61,25 @@ export enum TwirpContentType {
     Unknown,
 }
 
+type keys<T extends object> = Array<keyof T>
+
 /**
  * Runtime server implementation of a TwirpServer
  */
-export class TwirpServer<T> {
+export class TwirpServer<T extends object> {
 
     public readonly packageName: string;
     public readonly serviceName: string;
+    public readonly methodList: keys<T>;
 
+    private pathPrefix: string = "/twirp";
     private hooks: ServerHooks[] = [];
     private interceptors: Interceptor<any, any>[] = [];
-    protected pathPrefix: string = "/twirp";
 
     constructor(private readonly options: TwirpServerOptions<T>) {
         this.packageName = options.packageName;
         this.serviceName = options.serviceName;
+        this.methodList = options.methodList;
     }
 
     /**
@@ -85,11 +90,7 @@ export class TwirpServer<T> {
         return (req: http.IncomingMessage, resp: http.ServerResponse) => {
             // setup prefix
             if (options?.prefix !== undefined) {
-                if (options.prefix === false) {
-                    this.pathPrefix = "";
-                } else {
-                    this.pathPrefix = options.prefix;
-                }
+                this.withPrefix(options.prefix)
             }
             return this._httpHandler(req, resp);
         }
@@ -114,12 +115,30 @@ export class TwirpServer<T> {
 
     /**
      * Adds a prefix to the service url path
-     * @deprecated use server.httpHandler({ prefix: "" }) instead
      * @param prefix
      */
-    public withPrefix(prefix: string) {
-        this.pathPrefix = prefix;
+    public withPrefix(prefix: string | false) {
+        if (prefix === false) {
+            this.pathPrefix = "";
+        } else {
+            this.pathPrefix = prefix;
+        }
         return this;
+    }
+
+    /**
+     * Returns the regex matching path for this twirp server
+     */
+    public matchingPath() {
+        const baseRegex = this.baseURI().replace(/\./g, "\\.")
+        return new RegExp(`${baseRegex}\/(${this.options.methodList.join("|")})`);
+    }
+
+    /**
+     * Returns the base URI for this twirp server
+     */
+    public baseURI() {
+        return `${this.pathPrefix}/${this.packageName}.${this.serviceName}`
     }
 
     /**

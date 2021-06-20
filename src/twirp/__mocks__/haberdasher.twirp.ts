@@ -66,11 +66,18 @@ export interface HaberdasherTwirp {
   MakeHat(ctx: TwirpContext, request: Size): Promise<Hat>;
 }
 
+export enum HaberdasherMethod {
+  MakeHat = "MakeHat",
+}
+
+export const HaberdasherMethodList = [HaberdasherMethod.MakeHat];
+
 export function createHaberdasherServer(service: HaberdasherTwirp) {
   return new TwirpServer<HaberdasherTwirp>({
     service,
     packageName: "twirp.example.haberdasher",
     serviceName: "Haberdasher",
+    methodList: HaberdasherMethodList,
     matchRoute: matchHaberdasherRoute,
   });
 }
@@ -126,7 +133,7 @@ async function handleMakeHatJSON(
       const interceptor = chainInterceptors(...interceptors) as Interceptor<
         Size,
         Hat
-      >;
+        >;
       response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
         return service.MakeHat(ctx, inputReq);
       });
@@ -159,7 +166,7 @@ async function handleMakeHatProtobuf(
       const interceptor = chainInterceptors(...interceptors) as Interceptor<
         Size,
         Hat
-      >;
+        >;
       response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
         return service.MakeHat(ctx, inputReq);
       });

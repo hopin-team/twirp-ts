@@ -5,9 +5,24 @@ A complete server and client implementation of the awesome [Twirp Specification]
 Supported spec v7 and v8
 
 ----
+Table of Contents:
+
+- [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Install Protoc](#install-protoc)
+- [Code Generation](#code-generation)
+- [Server](#server)
+  - [Express](#integrating-with-express) 
+  - [Hooks & Interceptors](#server-hooks--interceptors)
+  - [Errors](#errors)
+- [Client](#twirp-client)
+- [How to Upgrade](#how-to-upgrade)
 
 ## Getting Started
 
+---
+
+### Installation
 Run the following to install the package
 
 ```
@@ -20,15 +35,34 @@ or
 yarn add twirp-ts
 ```
 
-## Server generation
+### Install Protoc
+Make sure you have `protoc` or `buf` installed.
 
-This library relies on the awesome [ts-proto](https://github.com/stephenh/ts-proto) to generate protobuf message definitions
+**Mac:**
+```bash
+brew install protoc
+```
 
-The `protoc-gen-twirp_ts` is instead used to generated `server` and `client` code for twirp-ts
+**Linux:**
+```bash
+apt-get install protoc
+```
 
-It is as simple as adding the following option in your `protoc` command
+**Optional**: <br />
+This plugin works with [buf](https://docs.buf.build/installation) too, follow the link to see how to install it
+
+## Code Generation
+
+**twirp-ts** relies on the awesome [ts-proto](https://github.com/stephenh/ts-proto) to generate protobuf message definitions
+
+The `protoc-gen-twirp_ts` is instead used to generate `server` and `client` code for twirp-ts
+
+It is as simple as adding the following options in your `protoc` command
 
 ```bash
+PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
+
+--plugin=protoc-gen-twirp_ts=${PROTOC_GEN_TWIRP_BIN} \
 --twirp_ts_out=$(OUT_DIR)
 ```
 
@@ -51,7 +85,7 @@ protoc \
     ./protos/*.proto
 ```
 
-### Server Implementation
+### Server
 
 Once you've generated the server code you can simply start a server as following:
 
@@ -83,8 +117,17 @@ const server = createHaberdasherServer({
     },
 });
 
+server.withPrefix("/custom-prefix") // or false to remove it
+
+http.createServer(server.httpHandler())
+  .listen(8080);
+```
+
+or you can pass it to the handler directly:
+
+```ts
 http.createServer(server.httpHandler({
-    prefix: "/custom-prefix", // or false to remove it
+    prefix: "/custom-prefix", 
 })).listen(8080);
 ```
 
@@ -95,22 +138,18 @@ If you'd like to use `express` as your drop in solution to add more routes, or m
 ```ts
 const server = createHaberdasherServer({
     async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
-        return Hat.fromPartial({
-            name: "wooow",
-        });
+        // ... implementation
     },
 });
 
 const app = express();
 
-app.use("/twirp", server.httpHandler({
-    prefix: false,
-}));
+app.post(server.matchingPath(), server.httpHandler());
 
-http.createServer(app).listen(8000);
+app.listen(8000);
 ```
 
-it is **important** that you disable the prefix from the default handler if you provide one.
+Note: if you want to change the default prefix use `server.withPrefix()`
 
 ### Server Hooks & Interceptors
 
@@ -238,6 +277,13 @@ const implementation: Rpc = {
 export const jsonClient = new HaberdasherClientJSON(implementation);
 export const protobufClient = new HaberdasherClientProtobuf(implementation);
 ```
+
+## How to upgrade
+
+The package uses Semver Versioning system. <br />
+However, keep in mind that the **code-generation** plugin is tightly coupled to the **twirp-ts** library.
+
+Make sure that whenever you update `twirp-ts` you re-generate the server and client code. This make sure that the generated code will be using the updated library
 
 ## Licence
 
