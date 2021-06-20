@@ -1,4 +1,3 @@
-import * as http from "http";
 import express from 'express';
 import {createHaberdasherServer} from "./generated/haberdasher.twirp";
 import {TwirpContext} from "twirp-ts";
@@ -17,11 +16,9 @@ const server = createHaberdasherServer({
 
 const app = express();
 
-app.use("/twirp", server.httpHandler({
-    prefix: false,
-}));
+app.post(server.matchingPath(), server.httpHandler())
 
-http.createServer(app).listen(8000, async () => {
+app.listen(8000, async () => {
     const jsonResp = await jsonClient.MakeHat({
         inches: 1,
     });
@@ -33,6 +30,4 @@ http.createServer(app).listen(8000, async () => {
     });
 
     console.log("response from Protobuf client", protobufResp);
-});
-
-
+})

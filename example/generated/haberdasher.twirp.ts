@@ -66,11 +66,18 @@ export interface HaberdasherTwirp {
   MakeHat(ctx: TwirpContext, request: Size): Promise<Hat>;
 }
 
+export enum HaberdasherMethod {
+  MakeHat = "MakeHat",
+}
+
+export const HaberdasherMethodList = [HaberdasherMethod.MakeHat];
+
 export function createHaberdasherServer(service: HaberdasherTwirp) {
   return new TwirpServer<HaberdasherTwirp>({
     service,
     packageName: "twirp.example.haberdasher",
     serviceName: "Haberdasher",
+    methodList: HaberdasherMethodList,
     matchRoute: matchHaberdasherRoute,
   });
 }
