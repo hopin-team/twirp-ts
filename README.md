@@ -103,6 +103,7 @@ protoc \
   --plugin=protoc-gen-ts=$(PROTOC_GEN_TS_BIN) \
   --plugin=protoc-gen-twirp_ts=$(PROTOC_GEN_TWIRP_BIN) \
   --ts_opt=client_none \
+  --ts_opt=generate_dependencies \
   --ts_out=$(OUT_DIR) \
   --twirp_ts_opt="protobufts=true" \
   --twirp_ts_out=$(OUT_DIR) \
