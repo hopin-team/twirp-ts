@@ -5,7 +5,7 @@ import {
 
 import { promisify } from 'util';
 import {generate} from "./generator";
-import {optionsFromParameters} from "./options";
+import {optionsFromParameters} from "./options-old";
 const {readToBuffer} = require('ts-proto/build/utils');
 const {createTypeMap} = require('ts-proto/build/types');
 

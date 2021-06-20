@@ -6,7 +6,7 @@ import {jsonClient, protobufClient} from "./client";
 
 const server = createHaberdasherServer({
     async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
-        return Hat.fromPartial({
+        return Hat.fromJSON({
             name: "cup",
             inches: 3,
             color: "blue",
@@ -16,11 +16,11 @@ const server = createHaberdasherServer({
 
 const app = express();
 
-app.post(server.matchingPath(), server.httpHandler())
+app.post(server.matchingPath(), server.httpHandler());
 
 app.listen(8000, async () => {
     const jsonResp = await jsonClient.MakeHat({
-        inches: 1,
+        inches: 2,
     });
 
     console.log("response from JSON client", jsonResp);

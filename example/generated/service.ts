@@ -169,31 +169,6 @@ export interface Haberdasher {
   MakeHat(request: Size): Promise<Hat>;
 }
 
-export class HaberdasherClientImpl implements Haberdasher {
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.MakeHat = this.MakeHat.bind(this);
-  }
-  MakeHat(request: Size): Promise<Hat> {
-    const data = Size.encode(request).finish();
-    const promise = this.rpc.request(
-      "twirp.example.haberdasher.Haberdasher",
-      "MakeHat",
-      data
-    );
-    return promise.then((data) => Hat.decode(new _m0.Reader(data)));
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
-
 type Builtin =
   | Date
   | Function
