@@ -19,11 +19,12 @@
   ],
   "author": "Fabrizio Fenoglio",
   "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "ts-poet": "^4.5.0",
     "ts-proto": "^1.81.1",
-    "ts-proto-descriptors": "^1.3.1",
+    "ts-proto-descriptors": "^1.3.1"
+  },
+  "devDependencies": {
     "@types/jest": "^26.0.23",
     "@types/node": "^15.12.2",
     "@types/supertest": "^2.0.11",
