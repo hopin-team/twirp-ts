@@ -39,9 +39,13 @@ export class TwirpError extends Error {
     /**
      * Add the original error cause
      * @param err
+     * @param addMeta
      */
-    public withCause(err: Error) {
+    public withCause(err: Error, addMeta: boolean = false) {
         this._originalCause = err;
+        if (addMeta) {
+            this.withMeta("cause", err.message);
+        }
         return this;
     }
 

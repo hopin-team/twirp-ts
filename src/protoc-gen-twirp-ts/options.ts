@@ -2,6 +2,7 @@
 
 export interface Options {
     out: string
+    protobufts: boolean
 }
 
 export function optionsFromParameters(parameters: string): Options {

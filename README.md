@@ -53,7 +53,7 @@ This plugin works with [buf](https://docs.buf.build/installation) too, follow th
 
 ## Code Generation
 
-**twirp-ts** relies on the awesome [ts-proto](https://github.com/stephenh/ts-proto) to generate protobuf message definitions
+**twirp-ts** relies on either [ts-proto](https://github.com/stephenh/ts-proto) or [protobuf-ts](https://github.com/timostamm/protobuf-ts) to generate protobuf message definitions
 
 The `protoc-gen-twirp_ts` is instead used to generate `server` and `client` code for twirp-ts
 
@@ -66,7 +66,10 @@ PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
 --twirp_ts_out=$(OUT_DIR)
 ```
 
-Here's an example working command:
+Here's an example working command with the recomended flags:
+
+<details>
+  <summary>using ts-proto (click to see)</summary>
 
 ```bash
 PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
@@ -84,6 +87,28 @@ protoc \
     --twirp_ts_out=${OUT_DIR} \
     ./protos/*.proto
 ```
+</details>
+
+<details>
+  <summary>using protobuf-ts (click to see)</summary>
+
+```bash
+PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
+PROTOC_GEN_TS_BIN="./node_modules/.bin/protoc-gen-ts"
+
+OUT_DIR="./generated"
+
+protoc \
+  -I ./protos \
+  --plugin=protoc-gen-ts=$(PROTOC_GEN_TS_BIN) \
+  --plugin=protoc-gen-twirp_ts=$(PROTOC_GEN_TWIRP_BIN) \
+  --ts_opt=client_none \
+  --ts_out=$(OUT_DIR) \
+  --twirp_ts_opt="protobufts=true" \
+  --twirp_ts_out=$(OUT_DIR) \
+  ./protos/*.proto
+```
+</details>
 
 ### Server
 

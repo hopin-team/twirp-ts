@@ -498,6 +498,42 @@
     "@types/yargs" "^16.0.0"
     "chalk" "^4.0.0"
 
+"@protobuf-ts/plugin-framework@^2.0.0-alpha.26":
+  "integrity" "sha512-TU/nidz6g3N4JYx4C8zf4nFlntnFpGPZAXbo8oQ52t60cns3NHR/+OTRBOy4bvR93K6E5BvBpzS043sjn2bc0A=="
+  "resolved" "https://registry.npmjs.org/@protobuf-ts/plugin-framework/-/plugin-framework-2.0.0-alpha.26.tgz"
+  "version" "2.0.0-alpha.26"
+  dependencies:
+    "@protobuf-ts/runtime" "^2.0.0-alpha.26"
+    "typescript" ">=3.8.3 <4"
+
+"@protobuf-ts/plugin@^2.0.0-alpha.26":
+  "integrity" "sha512-BGtccEcA+MoNvLXPmkEmNVAH2OzQb99P37SqdUvA0zQAvCw+t5/n8q/8vSGUO3wBnGgQtl+zLdHbJr6esmL5tw=="
+  "resolved" "https://registry.npmjs.org/@protobuf-ts/plugin/-/plugin-2.0.0-alpha.26.tgz"
+  "version" "2.0.0-alpha.26"
+  dependencies:
+    "@protobuf-ts/plugin-framework" "^2.0.0-alpha.26"
+    "@protobuf-ts/protoc" "^2.0.0-alpha.26"
+    "@protobuf-ts/runtime" "^2.0.0-alpha.26"
+    "@protobuf-ts/runtime-rpc" "^2.0.0-alpha.26"
+    "typescript" ">=3.8.3 <4"
+
+"@protobuf-ts/protoc@^2.0.0-alpha.26":
+  "integrity" "sha512-92m3Rq29tE6DqWYYwAtOxj5feQvuAyfFc6v4pD29B8/Kl4or5kkptwPcFyk7x5Dj/+A/nkE148bKWqVjivu7EQ=="
+  "resolved" "https://registry.npmjs.org/@protobuf-ts/protoc/-/protoc-2.0.0-alpha.26.tgz"
+  "version" "2.0.0-alpha.26"
+
+"@protobuf-ts/runtime-rpc@^2.0.0-alpha.26":
+  "integrity" "sha512-3WZNnPtaYdR9GPuyk92BO3r5f+v3k4uUuuyKgdvR16qPgqDmSIPyKgDZNjzWmyAmscH6Aj6eM0A9QfpNswOmdQ=="
+  "resolved" "https://registry.npmjs.org/@protobuf-ts/runtime-rpc/-/runtime-rpc-2.0.0-alpha.26.tgz"
+  "version" "2.0.0-alpha.26"
+  dependencies:
+    "@protobuf-ts/runtime" "^2.0.0-alpha.26"
+
+"@protobuf-ts/runtime@^2.0.0-alpha.26":
+  "integrity" "sha512-EFNFYjE/EAU2TYY4Arp/YOX7tiMYeM1xtXMxb72NfAJtN6VPXXUSE7eZLivnSMI1AV0pQnBTiFJNwoeu9eti5w=="
+  "resolved" "https://registry.npmjs.org/@protobuf-ts/runtime/-/runtime-2.0.0-alpha.26.tgz"
+  "version" "2.0.0-alpha.26"
+
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   "integrity" "sha1-m4sMxmPWaafY9vXQiToU00jzD78="
   "resolved" "https://registry.npmjs.org/@protobufjs/aspromise/-/aspromise-1.1.2.tgz"
@@ -2853,6 +2889,11 @@
   "integrity" "sha512-zZ4hShnmnoVnAHpVHWpTcxdv7dWP60S2FsydQLV8V5PbS3FifjWFFRiHSWpDJahly88PRyV5teTSLoq4eG7mKw=="
   "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.3.2.tgz"
   "version" "4.3.2"
+
+"typescript@>=3.8.3 <4":
+  "integrity" "sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q=="
+  "resolved" "https://registry.npmjs.org/typescript/-/typescript-3.9.10.tgz"
+  "version" "3.9.10"
 
 "universalify@^0.1.2":
   "integrity" "sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg=="

@@ -1,5 +1,5 @@
 import {CodeGeneratorResponse_File, FileDescriptorProto, ServiceDescriptorProto} from "ts-proto-descriptors";
-import {code, imp, joinCode} from "ts-poet";
+import {Code, code, imp, joinCode} from "ts-poet";
 
 const TwirpServer = imp("TwirpServer@twirp-ts");
 const Interceptor = imp("Interceptor@twirp-ts");
@@ -50,9 +50,28 @@ function genClient(ctx: any, file: FileDescriptorProto) {
           ): Promise<object | Uint8Array>;
         }
         
+        ${joinCode(genTwirpClientInterface(ctx, file), { on: "\n\n"})}
+        
         ${joinCode(genTwripClientJSONImpl(ctx, file), {on: "\n\n"})}
         ${joinCode(genTwripClientProtobufImpl(ctx, file), {on: "\n\n"})}
     `
+}
+
+function genTwirpClientInterface(ctx: any, file: FileDescriptorProto) {
+    return file.service.map((service) => {
+
+        const methods = service.method.map((method) => {
+            return code`
+                ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
+            `
+        });
+
+        return code`
+            export interface ${service.name}Client {
+                ${joinCode(methods, { on: "\n"})}
+            }   
+        `
+    });
 }
 
 /**
@@ -65,14 +84,14 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto) {
         const methods = service.method.map((method) => {
             return code`
                 ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                    const data = ${messageToTypeName(ctx,method.inputType)}.toJSON(request);
+                    const data = ${messageToTypeName(ctx,method.inputType)}.${encodeJSON(ctx,"request")};
                     const promise = this.rpc.request(
                       "${file.package}.${service.name}",
                       "${method.name}",
                       "application/json",
                       data as object,
                     );
-                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.fromJSON(data));
+                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeJSON(ctx,"data as any")});
                 }
             `
         });
@@ -84,7 +103,7 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto) {
         })
 
         return code`
-            export class ${service.name}ClientJSON implements ${service.name} {
+            export class ${service.name}ClientJSON implements ${service.name}Client {
               private readonly rpc: Rpc;
               constructor(rpc: Rpc) {
                 this.rpc = rpc;
@@ -106,14 +125,14 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto) {
         const methods = service.method.map((method) => {
             return code`
                 ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                    const data = ${messageToTypeName(ctx,method.inputType)}.encode(request).finish();
+                    const data = ${messageToTypeName(ctx,method.inputType)}.${encodeProtobuf(ctx, "request")};
                     const promise = this.rpc.request(
                       "${file.package}.${service.name}",
                       "${method.name}",
                       "application/protobuf",
                       data,
                     );
-                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.decode(data as Uint8Array));
+                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeProtobuf(ctx, "data as Uint8Array")});
                 }
             `
         });
@@ -125,7 +144,7 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto) {
         })
 
         return code`
-            export class ${service.name}ClientProtobuf implements ${service.name} {
+            export class ${service.name}ClientProtobuf implements ${service.name}Client {
               private readonly rpc: Rpc;
               constructor(rpc: Rpc) {
                 this.rpc = rpc;
@@ -144,7 +163,7 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto) {
  */
 function genTwirpService(ctx: any, file: FileDescriptorProto) {
     return file.service.map((service) => {
-        const importService = imp(`${service.name}@./${file.name.replace(".proto", "")}`)
+        const importService = service.name;
 
         const serverMethods = service.method.map((method) => {
             return code`
@@ -181,7 +200,7 @@ function genTwirpService(ctx: any, file: FileDescriptorProto) {
  * @param service
  */
 function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
-    const importService = imp(`${service.name}@./${file.name.replace(".proto", "")}`)
+    const importService = service.name;
 
     return code`
 
@@ -268,30 +287,27 @@ function genHandleJSONRequest(ctx: any, service: ServiceDescriptorProto) {
         return code`
         
         async function handle${method.name}JSON(ctx: ${TwirpContext}, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
+            let request: ${relativeMessageName(ctx,method.inputType)}
+            let response: ${relativeMessageName(ctx,method.outputType)}
             
             try {
                 const body = JSON.parse(data.toString() || "{}");
-                const typedReq = ${relativeMessageName(ctx, method.inputType)}.fromJSON(body);
-                let response: ${relativeMessageName(ctx,method.outputType)}
-                
-                if (interceptors && interceptors.length > 0) {
-                    const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
-                    response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
-                        return service.${method.name}(ctx, inputReq);
-                    });
-                } else {
-                    response = await service.${method.name}(ctx, typedReq)
-                }
-                
-                return JSON.stringify(${relativeMessageName(ctx,method.outputType)}.toJSON(response) as string);
+                request = ${relativeMessageName(ctx, method.inputType)}.${decodeJSON(ctx, "body")};
             } catch(e) {
-                if (e instanceof SyntaxError) { // Handle wrong json format
-                    const msg = "the json request could not be decoded";
-                    throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e);
-                }
-                
-                throw e;
+                const msg = "the json request could not be decoded";
+                throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
             }
+                
+            if (interceptors && interceptors.length > 0) {
+                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
+                response = await interceptor(ctx, request, (ctx, inputReq) => {
+                    return service.${method.name}(ctx, inputReq);
+                });
+            } else {
+                response = await service.${method.name}(ctx, request)
+            }
+            
+            return JSON.stringify(${relativeMessageName(ctx,method.outputType)}.${encodeJSON(ctx,"response")} as string);
         }
     `
     })
@@ -307,32 +323,85 @@ function genHandleProtobufRequest(ctx: any, service: ServiceDescriptorProto) {
         return code`
         
         async function handle${method.name}Protobuf(ctx: ${TwirpContext}, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
+            let request: ${relativeMessageName(ctx,method.inputType)}
+            let response: ${relativeMessageName(ctx,method.outputType)}
             
             try {
-                const typedReq = ${relativeMessageName(ctx, method.inputType)}.decode(data);
-                let response: ${relativeMessageName(ctx,method.outputType)}
-                
-                if (interceptors && interceptors.length > 0) {
-                    const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
-                    response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
-                        return service.${method.name}(ctx, inputReq);
-                    });
-                } else {
-                    response = await service.${method.name}(ctx, typedReq)
-                }
-                
-                return ${relativeMessageName(ctx,method.outputType)}.encode(response).finish();
+                request = ${relativeMessageName(ctx, method.inputType)}.${decodeProtobuf(ctx, "data")};
             } catch(e) {
-                if (e instanceof SyntaxError) { // Handle wrong json format
-                    const msg = "the protobuf request could not be decoded";
-                    throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e);
-                }
-                
-                throw e;
+                const msg = "the protobuf request could not be decoded";
+                throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);   
             }
+                
+            if (interceptors && interceptors.length > 0) {
+                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
+                response = await interceptor(ctx, request, (ctx, inputReq) => {
+                    return service.${method.name}(ctx, inputReq);
+                });
+            } else {
+                response = await service.${method.name}(ctx, request)
+            }
+            
+            return ${relativeMessageName(ctx,method.outputType)}.${encodeProtobuf(ctx, "response")};
         }
     `
     })
+}
+
+enum SupportedLibs {
+    TSProto = "ts-proto",
+    ProtobufTS = "protobuf-ts"
+}
+
+function validateLib(lib: string): SupportedLibs {
+    switch (lib) {
+        case "ts-proto":
+            return SupportedLibs.TSProto;
+        case "protobuf-ts":
+            return SupportedLibs.ProtobufTS;
+        default:
+            throw new Error(`library ${lib} not supported`)
+    }
+}
+
+function decodeJSON(ctx: any, dataName: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.TSProto) {
+        return code`fromJSON(${dataName})`
+    }
+
+    return code`fromJson(${dataName}, { ignoreUnknownFields: true })`
+}
+
+function encodeJSON(ctx: any, dataName: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.TSProto) {
+        return code`toJSON(${dataName})`
+    }
+
+    return code`toJson(${dataName})`
+}
+
+function encodeProtobuf(ctx: any, dataName: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.TSProto) {
+        return code`encode(${dataName}).finish()`
+    }
+
+    return code`toBinary(${dataName})`
+}
+
+function decodeProtobuf(ctx: any, dataName: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.TSProto) {
+        return code`decode(${dataName})`
+    }
+
+    return code`fromBinary(${dataName})`
 }
 
 function relativeMessageName(ctx: any, messageName: string): string {

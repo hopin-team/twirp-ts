@@ -1,6 +1,6 @@
 {
   "name": "twirp-ts",
-  "version": "1.3.0",
+  "version": "1.4.1",
   "description": "Typescript implementation of Twirp protocol specification",
   "main": "build/twirp/index.js",
   "bin": {
@@ -19,12 +19,11 @@
   ],
   "author": "Fabrizio Fenoglio",
   "license": "MIT",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "ts-poet": "^4.5.0",
     "ts-proto": "^1.81.1",
-    "ts-proto-descriptors": "^1.3.1"
-  },
-  "devDependencies": {
+    "ts-proto-descriptors": "^1.3.1",
     "@types/jest": "^26.0.23",
     "@types/node": "^15.12.2",
     "@types/supertest": "^2.0.11",
@@ -33,5 +32,8 @@
     "supertest": "^6.1.3",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.2"
+  },
+  "optionalDependencies": {
+    "@protobuf-ts/plugin": "^2.0.0-alpha.26"
   }
 }

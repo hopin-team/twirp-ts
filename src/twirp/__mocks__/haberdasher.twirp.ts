@@ -1,4 +1,3 @@
-import { Haberdasher, Size, Hat } from "./service";
 import {
   TwirpServer,
   RouterEvents,
@@ -9,6 +8,7 @@ import {
   TwirpContentType,
   chainInterceptors,
 } from "../index";
+import { Size, Hat } from "./service";
 
 //==================================//
 //          Client Code             //
@@ -23,7 +23,11 @@ interface Rpc {
   ): Promise<object | Uint8Array>;
 }
 
-export class HaberdasherClientJSON implements Haberdasher {
+export interface HaberdasherClient {
+  MakeHat(request: Size): Promise<Hat>;
+}
+
+export class HaberdasherClientJSON implements HaberdasherClient {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
@@ -37,10 +41,10 @@ export class HaberdasherClientJSON implements Haberdasher {
       "application/json",
       data as object
     );
-    return promise.then((data) => Hat.fromJSON(data));
+    return promise.then((data) => Hat.fromJSON(data as any));
   }
 }
-export class HaberdasherClientProtobuf implements Haberdasher {
+export class HaberdasherClientProtobuf implements HaberdasherClient {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
@@ -124,33 +128,30 @@ async function handleMakeHatJSON(
   data: Buffer,
   interceptors?: Interceptor<Size, Hat>[]
 ) {
+  let request: Size;
+  let response: Hat;
+
   try {
     const body = JSON.parse(data.toString() || "{}");
-    const typedReq = Size.fromJSON(body);
-    let response: Hat;
-
-    if (interceptors && interceptors.length > 0) {
-      const interceptor = chainInterceptors(...interceptors) as Interceptor<
-        Size,
-        Hat
-        >;
-      response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
-        return service.MakeHat(ctx, inputReq);
-      });
-    } else {
-      response = await service.MakeHat(ctx, typedReq);
-    }
-
-    return JSON.stringify(Hat.toJSON(response) as string);
+    request = Size.fromJSON(body);
   } catch (e) {
-    if (e instanceof SyntaxError) {
-      // Handle wrong json format
-      const msg = "the json request could not be decoded";
-      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e);
-    }
-
-    throw e;
+    const msg = "the json request could not be decoded";
+    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
   }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      Size,
+      Hat
+      >;
+    response = await interceptor(ctx, request, (ctx, inputReq) => {
+      return service.MakeHat(ctx, inputReq);
+    });
+  } else {
+    response = await service.MakeHat(ctx, request);
+  }
+
+  return JSON.stringify(Hat.toJSON(response) as string);
 }
 async function handleMakeHatProtobuf(
   ctx: TwirpContext,
@@ -158,30 +159,27 @@ async function handleMakeHatProtobuf(
   data: Buffer,
   interceptors?: Interceptor<Size, Hat>[]
 ) {
+  let request: Size;
+  let response: Hat;
+
   try {
-    const typedReq = Size.decode(data);
-    let response: Hat;
-
-    if (interceptors && interceptors.length > 0) {
-      const interceptor = chainInterceptors(...interceptors) as Interceptor<
-        Size,
-        Hat
-        >;
-      response = await interceptor(ctx, typedReq, (ctx, inputReq) => {
-        return service.MakeHat(ctx, inputReq);
-      });
-    } else {
-      response = await service.MakeHat(ctx, typedReq);
-    }
-
-    return Hat.encode(response).finish();
+    request = Size.decode(data);
   } catch (e) {
-    if (e instanceof SyntaxError) {
-      // Handle wrong json format
-      const msg = "the protobuf request could not be decoded";
-      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e);
-    }
-
-    throw e;
+    const msg = "the protobuf request could not be decoded";
+    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
   }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      Size,
+      Hat
+      >;
+    response = await interceptor(ctx, request, (ctx, inputReq) => {
+      return service.MakeHat(ctx, inputReq);
+    });
+  } else {
+    response = await service.MakeHat(ctx, request);
+  }
+
+  return Hat.encode(response).finish();
 }
