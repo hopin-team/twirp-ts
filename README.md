@@ -5,6 +5,10 @@ A complete server and client implementation of the awesome [Twirp Specification]
 Supported spec v7 and v8
 
 ----
+
+[![npm version](https://badge.fury.io/js/twirp-ts.svg)](https://badge.fury.io/js/twirp-ts)
+[![Coverage Status](https://coveralls.io/repos/github/hopin-team/twirp-ts/badge.svg?branch=main)](https://coveralls.io/github/hopin-team/twirp-ts?branch=main)
+
 Table of Contents:
 
 - [Getting Started](#getting-started)
