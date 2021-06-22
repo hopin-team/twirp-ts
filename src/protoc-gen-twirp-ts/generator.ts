@@ -50,14 +50,14 @@ function genClient(ctx: any, file: FileDescriptorProto, service: ServiceDescript
           ): Promise<object | Uint8Array>;
         }
         
-        ${genTwirpClientInterface(ctx, file, service)}
+        ${genTwirpClientInterface(ctx, service)}
         
         ${genTwripClientJSONImpl(ctx, file, service)}
         ${genTwripClientProtobufImpl(ctx, file, service)}
     `
 }
 
-function genTwirpClientInterface(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
+function genTwirpClientInterface(ctx: any, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
             ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
@@ -154,38 +154,36 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service
 /**
  * Generates twirp service definition
  * @param ctx
- * @param file
+ * @param service
  */
-function genTwirpService(ctx: any, file: FileDescriptorProto) {
-    return file.service.map((service) => {
-        const importService = service.name;
+function genTwirpService(ctx: any, service: ServiceDescriptorProto) {
+    const importService = service.name;
 
-        const serverMethods = service.method.map((method) => {
-            return code`
-                ${method.name}(ctx: ${TwirpContext}, request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
-            `
-        })
-
-        const methodEnum = service.method.map((method) => {
-            return code`${method.name} = "${method.name}",`
-        })
-
-        const methodList = service.method.map((method) => {
-            return code`${importService}Method.${method.name}`
-        })
-
+    const serverMethods = service.method.map((method) => {
         return code`
-            export interface ${importService}Twirp {
-                ${joinCode(serverMethods, {on: `\n`})}
-            }
-            
-            export enum ${importService}Method {
-                ${joinCode(methodEnum, {on: "\n"})}
-            }
-            
-            export const ${importService}MethodList = [${joinCode(methodList, {on: ","})}];
+            ${method.name}(ctx: ${TwirpContext}, request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
         `
-    });
+    })
+
+    const methodEnum = service.method.map((method) => {
+        return code`${method.name} = "${method.name}",`
+    })
+
+    const methodList = service.method.map((method) => {
+        return code`${importService}Method.${method.name}`
+    })
+
+    return code`
+        export interface ${importService}Twirp {
+            ${joinCode(serverMethods, {on: `\n`})}
+        }
+        
+        export enum ${importService}Method {
+            ${joinCode(methodEnum, {on: "\n"})}
+        }
+        
+        export const ${importService}MethodList = [${joinCode(methodList, {on: ","})}];
+    `
 }
 
 /**
@@ -203,7 +201,7 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
         //          Server Code             //
         //==================================//
         
-        ${genTwirpService(ctx, file)}
+        ${genTwirpService(ctx, service)}
     
         export function create${importService}Server(service: ${importService}Twirp) {
             return new ${TwirpServer}<${importService}Twirp>({
