@@ -22,7 +22,7 @@ export function generate(ctx: any, file: FileDescriptorProto) {
     const files = file.service.map(async (service) => {
 
         const content = await joinCode([
-            genClient(ctx, file),
+            genClient(ctx, file, service),
             genServer(ctx, file, service)
         ], { on: "\n\n" }).toStringWithImports();
 
@@ -35,7 +35,7 @@ export function generate(ctx: any, file: FileDescriptorProto) {
     return Promise.all(files);
 }
 
-function genClient(ctx: any, file: FileDescriptorProto) {
+function genClient(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     return code`
         //==================================//
         //          Client Code             //
@@ -50,110 +50,105 @@ function genClient(ctx: any, file: FileDescriptorProto) {
           ): Promise<object | Uint8Array>;
         }
         
-        ${joinCode(genTwirpClientInterface(ctx, file), { on: "\n\n"})}
+        ${genTwirpClientInterface(ctx, file, service)}
         
-        ${joinCode(genTwripClientJSONImpl(ctx, file), {on: "\n\n"})}
-        ${joinCode(genTwripClientProtobufImpl(ctx, file), {on: "\n\n"})}
+        ${genTwripClientJSONImpl(ctx, file, service)}
+        ${genTwripClientProtobufImpl(ctx, file, service)}
     `
 }
 
-function genTwirpClientInterface(ctx: any, file: FileDescriptorProto) {
-    return file.service.map((service) => {
-
-        const methods = service.method.map((method) => {
-            return code`
-                ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
-            `
-        });
-
+function genTwirpClientInterface(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
+    const methods = service.method.map((method) => {
         return code`
-            export interface ${service.name}Client {
-                ${joinCode(methods, { on: "\n"})}
-            }   
+            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
         `
     });
+
+    return code`
+        export interface ${service.name}Client {
+            ${joinCode(methods, { on: "\n"})}
+        }   
+    `
 }
 
 /**
  * Generates the json client
  * @param ctx
  * @param file
+ * @param service
  */
-function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto) {
-    return file.service.map(service => {
-        const methods = service.method.map((method) => {
-            return code`
-                ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                    const data = ${messageToTypeName(ctx,method.inputType)}.${encodeJSON(ctx,"request")};
-                    const promise = this.rpc.request(
-                      "${file.package}.${service.name}",
-                      "${method.name}",
-                      "application/json",
-                      data as object,
-                    );
-                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeJSON(ctx,"data as any")});
-                }
-            `
-        });
-
-        const bindings = service.method.map((method) => {
-            return code`
-                this.${method.name}.bind(this);
-            `
-        })
-
+function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
+    const methods = service.method.map((method) => {
         return code`
-            export class ${service.name}ClientJSON implements ${service.name}Client {
-              private readonly rpc: Rpc;
-              constructor(rpc: Rpc) {
-                this.rpc = rpc;
-                ${joinCode(bindings, {on: `\n`})}
-              }
-              ${joinCode(methods, {on: `\n\n`})}
+            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
+                const data = ${messageToTypeName(ctx,method.inputType)}.${encodeJSON(ctx,"request")};
+                const promise = this.rpc.request(
+                  "${file.package}.${service.name}",
+                  "${method.name}",
+                  "application/json",
+                  data as object,
+                );
+                return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeJSON(ctx,"data as any")});
             }
         `
+    });
+
+    const bindings = service.method.map((method) => {
+        return code`
+            this.${method.name}.bind(this);
+        `
     })
+
+    return code`
+        export class ${service.name}ClientJSON implements ${service.name}Client {
+          private readonly rpc: Rpc;
+          constructor(rpc: Rpc) {
+            this.rpc = rpc;
+            ${joinCode(bindings, {on: `\n`})}
+          }
+          ${joinCode(methods, {on: `\n\n`})}
+        }
+    `
 }
 
 /**
  * Generate the protobuf client
  * @param ctx
  * @param file
+ * @param service
  */
-function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto) {
-    return file.service.map(service => {
-        const methods = service.method.map((method) => {
-            return code`
-                ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                    const data = ${messageToTypeName(ctx,method.inputType)}.${encodeProtobuf(ctx, "request")};
-                    const promise = this.rpc.request(
-                      "${file.package}.${service.name}",
-                      "${method.name}",
-                      "application/protobuf",
-                      data,
-                    );
-                    return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeProtobuf(ctx, "data as Uint8Array")});
-                }
-            `
-        });
-
-        const bindings = service.method.map((method) => {
-            return code`
-                this.${method.name}.bind(this);
-            `
-        })
-
+function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
+    const methods = service.method.map((method) => {
         return code`
-            export class ${service.name}ClientProtobuf implements ${service.name}Client {
-              private readonly rpc: Rpc;
-              constructor(rpc: Rpc) {
-                this.rpc = rpc;
-                ${joinCode(bindings, {on: `\n`})}
-              }
-              ${joinCode(methods, {on: `\n\n`})}
+            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
+                const data = ${messageToTypeName(ctx,method.inputType)}.${encodeProtobuf(ctx, "request")};
+                const promise = this.rpc.request(
+                  "${file.package}.${service.name}",
+                  "${method.name}",
+                  "application/protobuf",
+                  data,
+                );
+                return promise.then((data) => ${relativeMessageName(ctx, method.outputType)}.${decodeProtobuf(ctx, "data as Uint8Array")});
             }
         `
+    });
+
+    const bindings = service.method.map((method) => {
+        return code`
+            this.${method.name}.bind(this);
+        `
     })
+
+    return code`
+        export class ${service.name}ClientProtobuf implements ${service.name}Client {
+          private readonly rpc: Rpc;
+          constructor(rpc: Rpc) {
+            this.rpc = rpc;
+            ${joinCode(bindings, {on: `\n`})}
+          }
+          ${joinCode(methods, {on: `\n\n`})}
+        }
+    `
 }
 
 /**
