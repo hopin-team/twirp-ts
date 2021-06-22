@@ -44,6 +44,7 @@ export class HaberdasherClientJSON implements HaberdasherClient {
     return promise.then((data) => Hat.fromJSON(data as any));
   }
 }
+
 export class HaberdasherClientProtobuf implements HaberdasherClient {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
