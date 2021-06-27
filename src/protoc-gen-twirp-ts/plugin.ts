@@ -1,45 +1,42 @@
-import {
-    CodeGeneratorRequest,
-    CodeGeneratorResponse,
-} from 'ts-proto-descriptors';
+import { CodeGeneratorRequest, DescriptorRegistry, PluginBase, SymbolTable, TypescriptFile, TypeScriptImports } from "@protobuf-ts/plugin-framework";
+import { File } from "./file";
+import { generate } from "./generator";
+import { genGateway } from "./gateway";
+import { optionsFromParameters } from "./options";
 
-import { promisify } from 'util';
-import {generate} from "./generator";
-import {optionsFromParameters} from "./options";
-const {readToBuffer} = require('ts-proto/build/utils');
 const {createTypeMap} = require('ts-proto/build/types');
 
-async function main() {
-    const stdin: Buffer = await readToBuffer(process.stdin);
+export class ProtobuftsPlugin extends PluginBase<File> {
 
-    const request = CodeGeneratorRequest.decode(stdin);
-    const options = optionsFromParameters(request.parameter);
-    const typeMap = createTypeMap(request, {})
-    const ctx = { typeMap, lib: options.protobufts ? 'protobuf-ts' : 'ts-proto' };
+  parameters = {
 
-    const generated = request.protoFile.map(protoFile => generate(ctx, protoFile));
+    // long type
+    protobufjs: {
+      description: "",
+      excludes: [],
+    },
 
-    const files = (await Promise.all(generated)).reduce((all, batch) => {
+    async generate(request: CodeGeneratorRequest): File[] | Promise<File[]> {
+      const registry = DescriptorRegistry.createFrom(request),
+            symbols = new SymbolTable(),
+            imports = new TypeScriptImports(symbols);
+
+      const options = optionsFromParameters(request.parameter || "");
+      const typeMap = createTypeMap(request, {})
+      const ctx = { typeMap, lib: options.protobufts ? 'protobuf-ts' : 'ts-proto' };
+
+      const generated = request.protoFile.map(protoFile => generate(ctx, protoFile));
+
+      const files = (await Promise.all(generated)).reduce((all, batch) => {
         all.push(...batch);
         return all;
-    }, [])
+      }, [])
 
-    const response = CodeGeneratorResponse.fromPartial({
-       file: files,
-    });
+      if (options.gateway) {
+        files.push(await genGateway(ctx, request.protoFile))
+      }
 
-    const buffer = CodeGeneratorResponse.encode(response).finish();
-    const write = promisify(process.stdout.write as (buffer: Buffer) => boolean).bind(process.stdout);
-    await write(Buffer.from(buffer));
+      return files;
+    }
+  }
 }
-
-main()
-    .then(() => {
-        process.exit(0);
-    })
-    .catch((e) => {
-        process.stderr.write('FAILED!');
-        process.stderr.write(e.message);
-        process.stderr.write(e.stack);
-        process.exit(1);
-    });

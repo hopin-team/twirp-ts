@@ -34,14 +34,16 @@ export class HaberdasherClientJSON implements HaberdasherClient {
     this.MakeHat.bind(this);
   }
   MakeHat(request: Size): Promise<Hat> {
-    const data = Size.toJSON(request);
+    const data = Size.toJson(request);
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "MakeHat",
       "application/json",
       data as object
     );
-    return promise.then((data) => Hat.fromJSON(data as any));
+    return promise.then((data) =>
+      Hat.fromJson(data as any, { ignoreUnknownFields: true })
+    );
   }
 }
 
@@ -52,14 +54,14 @@ export class HaberdasherClientProtobuf implements HaberdasherClient {
     this.MakeHat.bind(this);
   }
   MakeHat(request: Size): Promise<Hat> {
-    const data = Size.encode(request).finish();
+    const data = Size.toBinary(request);
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "MakeHat",
       "application/protobuf",
       data
     );
-    return promise.then((data) => Hat.decode(data as Uint8Array));
+    return promise.then((data) => Hat.fromBinary(data as Uint8Array));
   }
 }
 
@@ -134,7 +136,7 @@ async function handleMakeHatJSON(
 
   try {
     const body = JSON.parse(data.toString() || "{}");
-    request = Size.fromJSON(body);
+    request = Size.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
     const msg = "the json request could not be decoded";
     throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
@@ -152,7 +154,7 @@ async function handleMakeHatJSON(
     response = await service.MakeHat(ctx, request);
   }
 
-  return JSON.stringify(Hat.toJSON(response) as string);
+  return JSON.stringify(Hat.toJson(response) as string);
 }
 async function handleMakeHatProtobuf(
   ctx: TwirpContext,
@@ -164,7 +166,7 @@ async function handleMakeHatProtobuf(
   let response: Hat;
 
   try {
-    request = Size.decode(data);
+    request = Size.fromBinary(data);
   } catch (e) {
     const msg = "the protobuf request could not be decoded";
     throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
@@ -182,5 +184,5 @@ async function handleMakeHatProtobuf(
     response = await service.MakeHat(ctx, request);
   }
 
-  return Hat.encode(response).finish();
+  return Buffer.from(Hat.toBinary(response));
 }
