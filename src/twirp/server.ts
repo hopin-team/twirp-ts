@@ -14,12 +14,12 @@ import {
 /**
  * Options passed to the server implementation
  */
-interface TwirpServerOptions<T extends object> {
+interface TwirpServerOptions<T extends object, S extends TwirpContext = TwirpContext> {
     service: T
     packageName: string
     serviceName: string
     methodList:  keys<T>
-    matchRoute: (method: string, events: RouterEvents) => TwirpHandler<T>
+    matchRoute: (method: string, events: RouterEvents<S>) => TwirpHandler<T, S>
 }
 
 /**
@@ -43,13 +43,13 @@ export interface TwirpRequest {
 /**
  * Handles user handler
  */
-export type TwirpHandler<T> = (ctx: TwirpContext, service: T, data: Buffer, interceptors?: Interceptor<any, any>[]) => Promise<Uint8Array | string>;
+export type TwirpHandler<T, S extends TwirpContext = TwirpContext> = (ctx: S, service: T, data: Buffer, interceptors?: Interceptor<S, any, any>[]) => Promise<Uint8Array | string>;
 
 /**
  * Callbacks event for routing matches
  */
-export interface RouterEvents {
-    onMatch: (ctx: TwirpContext) => Promise<void> | void
+export interface RouterEvents<T extends TwirpContext = TwirpContext> {
+    onMatch: (ctx: T) => Promise<void> | void
     onNotFound: () => Promise<void> | void
 }
 
@@ -67,7 +67,7 @@ type keys<T extends object> = Array<keyof T>
 /**
  * Runtime server implementation of a TwirpServer
  */
-export class TwirpServer<T extends object> {
+export class TwirpServer<T extends object, S extends TwirpContext = TwirpContext> {
 
     public readonly packageName: string;
     public readonly serviceName: string;
@@ -75,11 +75,11 @@ export class TwirpServer<T extends object> {
 
     private service: T;
     private pathPrefix: string = "/twirp";
-    private hooks: ServerHooks[] = [];
-    private interceptors: Interceptor<any, any>[] = [];
-    private matchRoute: (method: string, events: RouterEvents) => TwirpHandler<T>
+    private hooks: ServerHooks<S>[] = [];
+    private interceptors: Interceptor<S, any, any>[] = [];
+    private matchRoute: (method: string, events: RouterEvents<S>) => TwirpHandler<T, S>
 
-    constructor(options: TwirpServerOptions<T>) {
+    constructor(options: TwirpServerOptions<T, S>) {
         this.packageName = options.packageName;
         this.serviceName = options.serviceName;
         this.methodList = options.methodList;
@@ -88,7 +88,14 @@ export class TwirpServer<T extends object> {
     }
 
     /**
-     * The http handler for twirp
+     * Returns the prefix for this server
+     */
+    get prefix() {
+        return this.pathPrefix;
+    }
+
+    /**
+     * The http handler for twirp complaint endpoints
      * @param options
      */
     public httpHandler(options?: HttpHandlerOptions) {
@@ -105,9 +112,9 @@ export class TwirpServer<T extends object> {
      * Adds interceptors or hooks to the request stack
      * @param middlewares
      */
-    public use(...middlewares: (ServerHooks | Interceptor<any, any>)[]) {
+    public use(...middlewares: (ServerHooks<S> | Interceptor<S, any, any>)[]) {
         middlewares.forEach(middleware => {
-            if (isHook(middleware)) {
+            if (isHook<S>(middleware)) {
                 this.hooks.push(middleware)
                 return this;
             }
@@ -152,7 +159,7 @@ export class TwirpServer<T extends object> {
      * @param res
      * @private
      */
-    protected createContext(req: http.IncomingMessage, res: http.ServerResponse): TwirpContext {
+    protected createContext(req: http.IncomingMessage, res: http.ServerResponse): S {
         return {
             packageName: this.packageName,
             serviceName: this.serviceName,
@@ -160,7 +167,7 @@ export class TwirpServer<T extends object> {
             contentType: getContentType(req.headers["content-type"]),
             req: req,
             res: res,
-        }
+        } as S
     }
 
     /**
@@ -212,7 +219,7 @@ export class TwirpServer<T extends object> {
      * @param err
      * @protected
      */
-    protected async invokeHook(hookName: keyof ServerHooks, ctx: TwirpContext, err?: TwirpError) {
+    protected async invokeHook(hookName: keyof ServerHooks<S>, ctx: S, err?: TwirpError) {
         if (this.hooks.length === 0) {
             return;
         }
