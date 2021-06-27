@@ -1,12 +1,11 @@
 import express from 'express';
 import {createHaberdasherServer} from "./generated/service.twirp";
-import {TwirpContext} from "../src/twirp";
-import {Hat, Size} from "./generated/service";
+import {Hat} from "./generated/service";
 import {jsonClient, protobufClient} from "./client";
 import { createGateway } from "./generated/gateway.twirp";
 
 const server = createHaberdasherServer({
-    async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
+    async MakeHat(ctx, request): Promise<Hat> {
         return Hat.fromJson({
             name: "cup",
             inches: request.inches,

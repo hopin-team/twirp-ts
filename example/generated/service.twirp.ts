@@ -1,13 +1,13 @@
 import {
+  TwirpContext,
   TwirpServer,
   RouterEvents,
   TwirpError,
   TwirpErrorCode,
-  TwirpContext,
   Interceptor,
   TwirpContentType,
   chainInterceptors,
-} from "twirp-ts";
+} from "../../src/twirp";
 import { Size, Hat } from "./service";
 
 //==================================//
@@ -69,8 +69,8 @@ export class HaberdasherClientProtobuf implements HaberdasherClient {
 //          Server Code             //
 //==================================//
 
-export interface HaberdasherTwirp {
-  MakeHat(ctx: TwirpContext, request: Size): Promise<Hat>;
+export interface HaberdasherTwirp<T extends TwirpContext = TwirpContext> {
+  MakeHat(ctx: T, request: Size): Promise<Hat>;
 }
 
 export enum HaberdasherMethod {
@@ -79,8 +79,10 @@ export enum HaberdasherMethod {
 
 export const HaberdasherMethodList = [HaberdasherMethod.MakeHat];
 
-export function createHaberdasherServer(service: HaberdasherTwirp) {
-  return new TwirpServer<HaberdasherTwirp>({
+export function createHaberdasherServer<T extends TwirpContext = TwirpContext>(
+  service: HaberdasherTwirp<T>
+) {
+  return new TwirpServer<HaberdasherTwirp, T>({
     service,
     packageName: "twirp.example.haberdasher",
     serviceName: "Haberdasher",
@@ -89,14 +91,17 @@ export function createHaberdasherServer(service: HaberdasherTwirp) {
   });
 }
 
-function matchHaberdasherRoute(method: string, events: RouterEvents) {
+function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
+  method: string,
+  events: RouterEvents<T>
+) {
   switch (method) {
     case "MakeHat":
       return async (
-        ctx: TwirpContext,
-        service: HaberdasherTwirp,
+        ctx: T,
+        service: HaberdasherTwirp<T>,
         data: Buffer,
-        interceptors?: Interceptor<Size, Hat>[]
+        interceptors?: Interceptor<T, Size, Hat>[]
       ) => {
         ctx = { ...ctx, methodName: "MakeHat" };
         await events.onMatch(ctx);
@@ -109,27 +114,27 @@ function matchHaberdasherRoute(method: string, events: RouterEvents) {
   }
 }
 
-function handleMakeHatRequest(
-  ctx: TwirpContext,
-  service: HaberdasherTwirp,
+function handleMakeHatRequest<T extends TwirpContext = TwirpContext>(
+  ctx: T,
+  service: HaberdasherTwirp<T>,
   data: Buffer,
-  interceptors?: Interceptor<Size, Hat>[]
+  interceptors?: Interceptor<T, Size, Hat>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleMakeHatJSON(ctx, service, data, interceptors);
+      return handleMakeHatJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleMakeHatProtobuf(ctx, service, data, interceptors);
+      return handleMakeHatProtobuf<T>(ctx, service, data, interceptors);
     default:
       const msg = "unexpected Content-Type";
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
-async function handleMakeHatJSON(
-  ctx: TwirpContext,
+async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
+  ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
-  interceptors?: Interceptor<Size, Hat>[]
+  interceptors?: Interceptor<T, Size, Hat>[]
 ) {
   let request: Size;
   let response: Hat;
@@ -144,6 +149,7 @@ async function handleMakeHatJSON(
 
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
       Size,
       Hat
     >;
@@ -156,11 +162,11 @@ async function handleMakeHatJSON(
 
   return JSON.stringify(Hat.toJson(response) as string);
 }
-async function handleMakeHatProtobuf(
-  ctx: TwirpContext,
+async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
+  ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
-  interceptors?: Interceptor<Size, Hat>[]
+  interceptors?: Interceptor<T, Size, Hat>[]
 ) {
   let request: Size;
   let response: Hat;
@@ -174,6 +180,7 @@ async function handleMakeHatProtobuf(
 
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
       Size,
       Hat
     >;
