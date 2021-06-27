@@ -21,7 +21,7 @@ Table of Contents:
   - [Errors](#errors)
   - [Gateway](#Gateway)
 - [Client](#twirp-client)
-- [Migrate to V2]()
+- [Migrate to V2](#migrate-to-v2)
 - [How to Upgrade](#how-to-upgrade)
 
 ## Getting Started
