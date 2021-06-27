@@ -1,12 +1,41 @@
 syntax = "proto3";
 
+option go_package = "generated/protos;service";
+
 package twirp.example.haberdasher;
 
+
+import "google/api/annotations.proto";
 
 // Haberdasher service makes hats for clients.
 service Haberdasher {
   // MakeHat produces a hat of mysterious, randomly-selected color!
-  rpc MakeHat(Size) returns (Hat);
+  rpc MakeHat(Size) returns (Hat) {
+    option (google.api.http) = {
+      post: "/hat"
+      body: "*"
+    };
+  };
+
+  rpc FindHat(FindHatRPC) returns (FindHatRPC) {
+    option (google.api.http) = {
+      get: "/hat/{hat_id}"
+    };
+  }
+
+  rpc ListHat(ListHatRPC) returns (ListHatRPC) {
+    option (google.api.http) = {
+      get: "/hat"
+    };
+  }
+}
+
+message FindHatRPC {
+  string hat_id = 1;
+}
+
+message ListHatRPC {
+  repeated Filter filters = 1;
 }
 
 // Size of a Hat, in inches.
@@ -16,7 +45,19 @@ message Size {
 
 // A Hat is a piece of headwear made by a Haberdasher.
 message Hat {
-  int32 inches = 1;
-  string color = 2; // anything but "invisible"
-  string name = 3; // i.e. "bowler"
+  string id = 1;
+  int32 inches = 2;
+  string color = 3; // anything but "invisible"
+  string name = 4; // i.e. "bowler"
+  repeated Hat variants = 5;
+}
+
+message Filter {
+  string order_by = 1;
+  Pagination pagination = 2;
+}
+
+message Pagination {
+  int32 limit = 1;
+  int32 offset = 2;
 }

@@ -367,7 +367,7 @@ function encodeJSON(ctx: any, dataName: string) {
         return code`toJSON(${dataName})`
     }
 
-    return code`toJson(${dataName})`
+    return code`toJson(${dataName}, {useProtoFieldName: true})`
 }
 
 function encodeProtobuf(ctx: any, dataName: string) {

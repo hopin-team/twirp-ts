@@ -4,9 +4,9 @@ import {
     createHaberdasherServer,
     HaberdasherClientJSON,
     HaberdasherClientProtobuf
-} from "../__mocks__/haberdasher.twirp";
+} from "../__mocks__/service.twirp";
 import {TwirpContext} from "../context";
-import {Hat, Size} from "../__mocks__/service";
+import { FindHatRPC, Hat, ListHatRPC, Size } from "../__mocks__/service";
 import {NodeHttpRPC} from "../http.client";
 import {InternalServerError, TwirpError, TwirpErrorCode} from "../errors";
 
@@ -18,10 +18,18 @@ describe("Twirp Clients", () => {
         const twirpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
                 return Hat.create({
+                    id: "1",
                     name: "cap",
                     color: "blue",
                     inches: 100,
+                    variants: [],
                 })
+            },
+            async FindHat(ctx, request): Promise<FindHatRPC> {
+                return request;
+            },
+            async ListHat(ctx, request): Promise<ListHatRPC> {
+                return request;
             }
         });
 
@@ -44,9 +52,11 @@ describe("Twirp Clients", () => {
             });
 
             expect(hat).toEqual({
+                id: "1",
                 color: "blue",
                 inches: 100,
                 name: "cap",
+                variants: [],
             });
 
             await httpTerminator.terminate();
@@ -67,9 +77,11 @@ describe("Twirp Clients", () => {
             });
 
             expect(hat).toEqual({
+                id: "1",
                 color: "blue",
                 inches: 100,
                 name: "cap",
+                variants: [],
             });
 
             await httpTerminator.terminate();
@@ -84,6 +96,12 @@ describe("Twirp Clients", () => {
                 error.withMeta("test", "msg")
                 error.withMeta("test2", "msg2")
                 throw error;
+            },
+            async FindHat(ctx, request): Promise<FindHatRPC> {
+                return request;
+            },
+            async ListHat(ctx, request): Promise<ListHatRPC> {
+                return request;
             }
         });
 

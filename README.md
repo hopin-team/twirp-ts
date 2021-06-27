@@ -322,7 +322,7 @@ import {createGateway} from './generated/gateway.twirp.ts';
 const app = express();
 const gateway = createGateway();
 
-app.use(gateway.rewriteMiddleware());
+app.use(gateway.twirpRewrite());
 
 // All your twirp handlers
 app.post(server.matchingPath(), server.httpHandler());

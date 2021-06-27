@@ -1,8 +1,8 @@
 import * as http from 'http';
 import supertest from 'supertest';
-import {createHaberdasherServer, HaberdasherTwirp} from "../__mocks__/haberdasher.twirp";
+import {createHaberdasherServer, HaberdasherTwirp} from "../__mocks__/service.twirp";
 import {TwirpContext} from "../context";
-import {Hat, Size} from "../__mocks__/service";
+import { FindHatRPC, Hat, ListHatRPC, Size } from "../__mocks__/service";
 import {TwirpError, TwirpErrorCode} from "../errors";
 import {TwirpServer} from "../server";
 
@@ -17,6 +17,12 @@ describe("Server twirp specification", () => {
                     color: "blue",
                     inches: 3,
                 });
+            },
+            async FindHat(ctx, request): Promise<FindHatRPC> {
+                return request;
+            },
+            async ListHat(ctx, request): Promise<ListHatRPC> {
+                return request;
             }
         });
 
@@ -141,6 +147,12 @@ describe("Hooks & Interceptors", () => {
                     color: "blue",
                     inches: 3,
                 });
+            },
+            async FindHat(ctx, request): Promise<FindHatRPC> {
+                return request;
+            },
+            async ListHat(ctx, request): Promise<ListHatRPC> {
+                return request;
             }
         });
 
@@ -200,6 +212,12 @@ describe("Hooks & Interceptors", () => {
         twirpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
                 throw new TwirpError(TwirpErrorCode.Internal, "test error");
+            },
+            async FindHat(ctx, request): Promise<FindHatRPC> {
+                return request;
+            },
+            async ListHat(ctx, request): Promise<ListHatRPC> {
+                return request;
             }
         });
 

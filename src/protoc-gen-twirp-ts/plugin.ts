@@ -1,5 +1,6 @@
 import {
-  CodeGeneratorRequest, CodeGeneratorResponse_Feature,
+  CodeGeneratorRequest,
+  CodeGeneratorResponse_Feature,
   DescriptorRegistry,
   PluginBase,
   SymbolTable,

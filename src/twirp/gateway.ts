@@ -42,13 +42,10 @@ export class Gateway {
   /**
    * Middleware that rewrite the current request
    * to a Twirp compliant request
-   * @param req
-   * @param resp
-   * @param next
    */
-  rewriteMiddleware() {
+  twirpRewrite(prefix = "/twirp") {
     return (req: http.IncomingMessage, resp: http.ServerResponse, next: (err?: Error) => void) => {
-      this.rewrite(req)
+      this.rewrite(req, prefix)
         .then(() => next())
         .catch(e => {
           if (e instanceof TwirpError) {
@@ -78,7 +75,7 @@ export class Gateway {
     req.method = "POST";
     req.headers["content-type"] = "application/json";
 
-    setImmediate(() => {
+    process.nextTick(() => {
       req.emit("data", Buffer.from(JSON.stringify(body)))
       req.emit("end");
     });

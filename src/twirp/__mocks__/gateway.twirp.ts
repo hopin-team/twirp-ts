@@ -1,4 +1,4 @@
-import { Gateway, Pattern } from "twirp-ts";
+import { Gateway, Pattern } from "../index";
 import { match } from "path-to-regexp";
 
 export function createGateway() {
