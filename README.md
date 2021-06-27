@@ -19,7 +19,9 @@ Table of Contents:
   - [Express](#integrating-with-express) 
   - [Hooks & Interceptors](#server-hooks--interceptors)
   - [Errors](#errors)
+  - [Gateway](#Gateway)
 - [Client](#twirp-client)
+- [Migrate to V2]()
 - [How to Upgrade](#how-to-upgrade)
 
 ## Getting Started
@@ -30,14 +32,16 @@ Table of Contents:
 Run the following to install the package
 
 ```
-npm i twirp-ts -S
+npm i twirp-ts @protobuf-ts/plugin@next -S
 ```
 
 or
 
 ```
-yarn add twirp-ts
+yarn add twirp-ts @protobuf-ts/plugin@next
 ```
+
+Install `ts-proto` instead if you prefer it over `@protobuf-ts`
 
 ### Install Protoc
 Make sure you have `protoc` or `buf` installed.
@@ -57,7 +61,7 @@ This plugin works with [buf](https://docs.buf.build/installation) too, follow th
 
 ## Code Generation
 
-**twirp-ts** relies on either [ts-proto](https://github.com/stephenh/ts-proto) or [protobuf-ts](https://github.com/timostamm/protobuf-ts) to generate protobuf message definitions
+**twirp-ts** relies on either [protobuf-ts](https://github.com/timostamm/protobuf-ts) or [ts-proto](https://github.com/stephenh/ts-proto) to generate protobuf message definitions
 
 The `protoc-gen-twirp_ts` is instead used to generate `server` and `client` code for twirp-ts
 
@@ -88,6 +92,7 @@ protoc \
     --ts_proto_opt=esModuleInterop=true \
     --ts_proto_opt=outputClientImpl=false \
     --ts_proto_out=${OUT_DIR} \
+    --twirp_ts_opt="ts_proto" \
     --twirp_ts_out=${OUT_DIR} \
     ./protos/*.proto
 ```
@@ -109,7 +114,6 @@ protoc \
   --ts_opt=client_none \
   --ts_opt=generate_dependencies \
   --ts_out=$(OUT_DIR) \
-  --twirp_ts_opt="protobufts=true" \
   --twirp_ts_out=$(OUT_DIR) \
   ./protos/*.proto
 ```
@@ -261,6 +265,77 @@ class UnauthenticatedError extends TwirpError {
 }
 ```
 
+## Gateway
+The gateway allows to expose custom http endpoints that automatically maps to your twirp handlers.
+
+The mapping is done in your proto file using the [google.api.http](https://github.com/googleapis/googleapis/blob/master/google/api/http.proto#L46) annotations spec.
+
+
+### Add the annotation
+
+```proto
+service Haberdasher {
+  // MakeHat produces a hat of mysterious, randomly-selected color!
+  rpc MakeHat(Size) returns (Hat) {
+    option (google.api.http) = {
+      post: "/hat"
+      body: "*"
+    };
+  };
+}
+```
+
+### Generating the gateway
+
+add the following option in your `protoc` command:
+
+```
+--twirp_ts_opt=gateway
+```
+
+Don't forget to regenerate your proto files.
+
+### Gateway Reverse Proxy
+Once we generated the gateway we can use it as a stand-alone reverse-proxy server or as a request rewriter.
+
+The following example creates a stand-alone reverse proxy:
+
+```ts
+import express from 'express';
+import {createGateway} from './generated/gateway.twirp.ts';
+
+const app = express();
+const gateway = createGateway();
+
+app.use(gateway.reverseProxy({
+  baseUrl: "http://localhost:8000/twirp",
+}));
+
+app.listen(8001);
+```
+
+### Gateway rewriter
+If you prefer to have the gateway in the same server as your twirp endpoint and save a round-trip, you'd want to use the `rewriter`
+
+The rewriter will automatically rewrite the request (once it finds a match) to the corresponded twirp handler
+
+```ts
+import express from 'express';
+import {createGateway} from './generated/gateway.twirp.ts';
+
+const app = express();
+const gateway = createGateway();
+
+app.use(gateway.twirpRewrite());
+
+// All your twirp handlers
+app.post(server.matchingPath(), server.httpHandler());
+
+app.listen(8001);
+```
+
+**Note:** make sure the middleware is register before your twirp handlers
+
 ## Twirp Client
 
 As well as the server you've also got generated client code, ready for you to use. <br />
@@ -307,6 +382,22 @@ const implementation: Rpc = {
 export const jsonClient = new HaberdasherClientJSON(implementation);
 export const protobufClient = new HaberdasherClientProtobuf(implementation);
 ```
+
+## Migrate to V2
+
+The v2 offers new functionalities and stability improvements, a few simple to migrate breaking changes
+have been made during the upgrade.
+
+- ts-proto & @protobuf-ts are now `peerDepedencies` which means that you can now update them at your pace.
+  - Install either one of the 2 libraries (refer to Getting Started)
+  
+
+- The twirp generator now uses `protobuf-ts` as the default generator. pass the `--twirp_ts_opt="ts_proto"` 
+to use `ts-proto`
+  
+
+- We now generate a single `*.twirp.ts` per `.proto` file instead of 1 file per `service` definition. 
+if you have multiple services in one file you'd simply need to fix the imports
 
 ## How to upgrade
 

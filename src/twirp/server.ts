@@ -2,23 +2,24 @@ import * as http from "http";
 import {TwirpContext} from "./context";
 import {chainHooks, isHook, ServerHooks} from "./hooks";
 import {Interceptor} from "./interceptors";
+import { getContentType, getRequestData, validateRequest } from "./request";
 import {
+    BadRouteError,
     httpStatusFromErrorCode,
     InternalServerError,
     InternalServerErrorWith,
     TwirpError,
-    TwirpErrorCode,
 } from "./errors";
 
 /**
  * Options passed to the server implementation
  */
-interface TwirpServerOptions<T extends object> {
+interface TwirpServerOptions<T extends object, S extends TwirpContext = TwirpContext> {
     service: T
     packageName: string
     serviceName: string
     methodList:  keys<T>
-    matchRoute: (method: string, events: RouterEvents) => TwirpHandler<T>
+    matchRoute: (method: string, events: RouterEvents<S>) => TwirpHandler<T, S>
 }
 
 /**
@@ -31,7 +32,7 @@ export interface HttpHandlerOptions {
 /**
  * Represent a Twirp request
  */
-interface TwirpRequest {
+export interface TwirpRequest {
     prefix?: string
     pkgService: string
     method: string
@@ -42,13 +43,13 @@ interface TwirpRequest {
 /**
  * Handles user handler
  */
-export type TwirpHandler<T> = (ctx: TwirpContext, service: T, data: Buffer, interceptors?: Interceptor<any, any>[]) => Promise<Uint8Array | string>;
+export type TwirpHandler<T, S extends TwirpContext = TwirpContext> = (ctx: S, service: T, data: Buffer, interceptors?: Interceptor<S, any, any>[]) => Promise<Uint8Array | string>;
 
 /**
  * Callbacks event for routing matches
  */
-export interface RouterEvents {
-    onMatch: (ctx: TwirpContext) => Promise<void> | void
+export interface RouterEvents<T extends TwirpContext = TwirpContext> {
+    onMatch: (ctx: T) => Promise<void> | void
     onNotFound: () => Promise<void> | void
 }
 
@@ -66,24 +67,35 @@ type keys<T extends object> = Array<keyof T>
 /**
  * Runtime server implementation of a TwirpServer
  */
-export class TwirpServer<T extends object> {
+export class TwirpServer<T extends object, S extends TwirpContext = TwirpContext> {
 
     public readonly packageName: string;
     public readonly serviceName: string;
     public readonly methodList: keys<T>;
 
+    private service: T;
     private pathPrefix: string = "/twirp";
-    private hooks: ServerHooks[] = [];
-    private interceptors: Interceptor<any, any>[] = [];
+    private hooks: ServerHooks<S>[] = [];
+    private interceptors: Interceptor<S, any, any>[] = [];
+    private matchRoute: (method: string, events: RouterEvents<S>) => TwirpHandler<T, S>
 
-    constructor(private readonly options: TwirpServerOptions<T>) {
+    constructor(options: TwirpServerOptions<T, S>) {
         this.packageName = options.packageName;
         this.serviceName = options.serviceName;
         this.methodList = options.methodList;
+        this.matchRoute = options.matchRoute;
+        this.service = options.service;
     }
 
     /**
-     * The http handler for twirp
+     * Returns the prefix for this server
+     */
+    get prefix() {
+        return this.pathPrefix;
+    }
+
+    /**
+     * The http handler for twirp complaint endpoints
      * @param options
      */
     public httpHandler(options?: HttpHandlerOptions) {
@@ -100,9 +112,9 @@ export class TwirpServer<T extends object> {
      * Adds interceptors or hooks to the request stack
      * @param middlewares
      */
-    public use(...middlewares: (ServerHooks | Interceptor<any, any>)[]) {
+    public use(...middlewares: (ServerHooks<S> | Interceptor<S, any, any>)[]) {
         middlewares.forEach(middleware => {
-            if (isHook(middleware)) {
+            if (isHook<S>(middleware)) {
                 this.hooks.push(middleware)
                 return this;
             }
@@ -131,7 +143,7 @@ export class TwirpServer<T extends object> {
      */
     public matchingPath() {
         const baseRegex = this.baseURI().replace(/\./g, "\\.")
-        return new RegExp(`${baseRegex}\/(${this.options.methodList.join("|")})`);
+        return new RegExp(`${baseRegex}\/(${this.methodList.join("|")})`);
     }
 
     /**
@@ -147,7 +159,7 @@ export class TwirpServer<T extends object> {
      * @param res
      * @private
      */
-    protected createContext(req: http.IncomingMessage, res: http.ServerResponse): TwirpContext {
+    protected createContext(req: http.IncomingMessage, res: http.ServerResponse): S {
         return {
             packageName: this.packageName,
             serviceName: this.serviceName,
@@ -155,7 +167,7 @@ export class TwirpServer<T extends object> {
             contentType: getContentType(req.headers["content-type"]),
             req: req,
             res: res,
-        }
+        } as S
     }
 
     /**
@@ -172,18 +184,18 @@ export class TwirpServer<T extends object> {
 
             const {method, mimeContentType} = validateRequest(ctx, req, this.pathPrefix || "");
 
-            const handler = this.options.matchRoute(method, {
+            const handler = this.matchRoute(method, {
                 onMatch: (ctx) => {
                     return this.invokeHook("requestRouted", ctx);
                 },
                 onNotFound: () => {
                     const msg = `no handler for path ${req.url}`
-                    throw badRouteError(msg, req.method || "", req.url || "");
+                    throw new BadRouteError(msg, req.method || "", req.url || "");
                 },
             });
 
             const body = await getRequestData(req);
-            const response = await handler(ctx, this.options.service, body, this.interceptors);
+            const response = await handler(ctx, this.service, body, this.interceptors);
 
             await this.invokeHook("requestPrepared", ctx);
 
@@ -191,7 +203,7 @@ export class TwirpServer<T extends object> {
             resp.setHeader("Content-Type", mimeContentType);
             resp.end(response);
         } catch (e) {
-            await this.dispatchError(ctx, e);
+            await this.invokeHook("error", ctx, mustBeTwirpError(e));
             if (!resp.headersSent) {
                 writeError(resp, e);
             }
@@ -201,22 +213,13 @@ export class TwirpServer<T extends object> {
     }
 
     /**
-     * Dispatches the error to the registered hooks
-     * @param ctx
-     * @param err
-     */
-    protected dispatchError(ctx: TwirpContext, err: Error) {
-        return this.invokeHook("error", ctx, mustBeTwirpError(err));
-    }
-
-    /**
      * Invoke a hook
      * @param hookName
      * @param ctx
      * @param err
      * @protected
      */
-    protected async invokeHook(hookName: keyof ServerHooks, ctx: TwirpContext, err?: TwirpError) {
+    protected async invokeHook(hookName: keyof ServerHooks<S>, ctx: S, err?: TwirpError) {
         if (this.hooks.length === 0) {
             return;
         }
@@ -240,115 +243,6 @@ export function writeError(res: http.ServerResponse, error: Error | TwirpError):
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = httpStatusFromErrorCode(twirpError.code);
     res.end(twirpError.toJSON());
-}
-
-/**
- * Get supported content-type
- * @param mimeType
- */
-export function getContentType(mimeType: string | undefined): TwirpContentType {
-    switch (mimeType) {
-        case 'application/protobuf':
-            return TwirpContentType.Protobuf;
-        case 'application/json':
-            return TwirpContentType.JSON;
-        default:
-            return TwirpContentType.Unknown;
-    }
-}
-
-/**
- * Validate a twirp request
- * @param ctx
- * @param request
- * @param pathPrefix
- */
-function validateRequest(ctx: TwirpContext, request: http.IncomingMessage, pathPrefix: string): TwirpRequest {
-    if (request.method !== "POST") {
-        const msg = `unsupported method ${request.method} (only POST is allowed)`;
-        throw badRouteError(msg, request.method || "", request.url || "");
-    }
-
-    const path = parseTwirpPath(request.url || "");
-
-    if (path.pkgService !== ctx.packageName + "." + ctx.serviceName) {
-        const msg = `no handler for path ${request.url}`;
-        throw badRouteError(msg, request.method || "", request.url || "");
-    }
-
-    if (path.prefix !== pathPrefix) {
-        const msg = `invalid path prefix ${path.prefix}, expected ${pathPrefix}, on path ${request.url}`;
-        throw badRouteError(msg, request.method || "", request.url || "");
-    }
-
-    const mimeContentType = request.headers["content-type"] || "";
-
-    if (ctx.contentType === TwirpContentType.Unknown) {
-        const msg = `unexpected Content-Type: ${request.headers["content-type"]}`;
-        throw badRouteError(msg, request.method || "", request.url || "");
-    }
-
-    return {...path, mimeContentType, contentType: ctx.contentType};
-}
-
-/**
- * Get request data from the body
- * @param req
- */
-function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        req.on('data', chunk => chunks.push(chunk));
-        req.on('end', async () => {
-            const data = Buffer.concat(chunks);
-            resolve(data);
-        });
-
-        req.on("error", (err) => {
-            if (req.aborted) {
-                reject(new TwirpError(TwirpErrorCode.DeadlineExceeded, "failed to read request: deadline exceeded"));
-            } else {
-                reject(new TwirpError(TwirpErrorCode.Malformed, err.message).withCause(err));
-            }
-        });
-
-        req.on("close", () => {
-            reject(new TwirpError(TwirpErrorCode.Canceled, "failed to read request: context canceled"));
-        });
-    });
-}
-
-/**
- * Parses twirp url path
- * @param path
- */
-function parseTwirpPath(path: string): Omit<TwirpRequest, "contentType" | "mimeContentType"> {
-    const parts = path.split("/");
-    if (parts.length < 2) {
-        return {
-            pkgService: "",
-            method: "",
-            prefix: "",
-        }
-    }
-
-    return {
-        method: parts[parts.length - 1],
-        pkgService: parts[parts.length - 2],
-        prefix: parts.slice(0, parts.length - 2).join("/"),
-    }
-}
-
-/**
- * Creates a standard badRouteError
- * @param msg
- * @param method
- * @param url
- */
-function badRouteError(msg: string, method: string, url: string) {
-    const error = new TwirpError(TwirpErrorCode.BadRoute, msg);
-    error.withMeta("twirp_invalid_route", method + " " + url);
-    return error;
 }
 
 /**

@@ -143,6 +143,16 @@ export class InternalServerErrorWith extends InternalServerError {
     }
 }
 
+/**
+ * A standard BadRoute Error
+ */
+export class BadRouteError extends TwirpError {
+    constructor(msg: string, method: string, url: string) {
+        super(TwirpErrorCode.BadRoute, msg);
+        this.withMeta("twirp_invalid_route", method + " " + url);
+    }
+}
+
 export enum TwirpErrorCode {
     // Canceled indicates the operation was cancelled (typically by the caller).
     Canceled = 'canceled',

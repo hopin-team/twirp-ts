@@ -18,12 +18,12 @@ import {TwirpError} from "./errors";
 //
 // Details on the timing of each hook are documented as comments on the fields
 // of the ServerHooks type.
-export interface ServerHooks {
-    requestReceived?: (ctx: TwirpContext) => void | Promise<void>
-    requestRouted?: (ctx: TwirpContext) => void | Promise<void>
-    requestPrepared?: (ctx: TwirpContext) => void | Promise<void>
-    requestSent?: (ctx: TwirpContext) => void | Promise<void>
-    error?: (ctx: TwirpContext, err: TwirpError) => void | Promise<void>
+export interface ServerHooks<T extends TwirpContext = TwirpContext> {
+    requestReceived?: (ctx: T) => void | Promise<void>
+    requestRouted?: (ctx: T) => void | Promise<void>
+    requestPrepared?: (ctx: T) => void | Promise<void>
+    requestSent?: (ctx: T) => void | Promise<void>
+    error?: (ctx: T, err: TwirpError) => void | Promise<void>
 }
 
 // ChainHooks creates a new ServerHook which chains the callbacks in
@@ -32,7 +32,7 @@ export interface ServerHooks {
 //
 // For the erroring hooks, RequestReceived and RequestRouted, any returned
 // errors prevent processing by later hooks.
-export function chainHooks(...hooks: ServerHooks[]): ServerHooks | null {
+export function chainHooks<T extends TwirpContext = TwirpContext>(...hooks: ServerHooks<T>[]): ServerHooks<T> | null {
     if (hooks.length === 0) {
         return null;
     }
@@ -41,7 +41,7 @@ export function chainHooks(...hooks: ServerHooks[]): ServerHooks | null {
         return hooks[0];
     }
 
-    const serverHook: ServerHooks = {
+    const serverHook: ServerHooks<T> = {
         async requestReceived(ctx) {
             for (const hook of hooks) {
                 if (!hook.requestReceived) {
@@ -87,7 +87,7 @@ export function chainHooks(...hooks: ServerHooks[]): ServerHooks | null {
     return serverHook;
 }
 
-export function isHook(object: any): object is ServerHooks {
+export function isHook<T extends TwirpContext = TwirpContext>(object: any): object is ServerHooks<T> {
     return (
         'requestReceived' in object ||
         'requestPrepared' in object ||

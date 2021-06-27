@@ -1,6 +1,6 @@
 import axios from "axios";
-import {HaberdasherClientJSON, HaberdasherClientProtobuf} from "./generated/haberdasher.twirp";
-import {NodeHttpRPC} from "twirp-ts";
+import {HaberdasherClientJSON, HaberdasherClientProtobuf} from "./generated/service.twirp";
+import {NodeHttpRPC} from "../src/twirp";
 
 interface Rpc {
     request(
@@ -29,13 +29,13 @@ export const axiosImplementation: Rpc = {
 }
 
 export const jsonClient = new HaberdasherClientJSON(axiosImplementation);
-export const protobufClient = new HaberdasherClientProtobuf(axiosImplementation);
+// export const protobufClient = new HaberdasherClientProtobuf(axiosImplementation);
 
 // Standard implementation
 
 // export const jsonClient = new HaberdasherClientJSON(NodeHttpRPC({
 //     baseUrl: "http://localhost:8000/twirp",
 // }));
-// export const protobufClient = new HaberdasherClientProtobuf(NodeHttpRPC({
-//     baseUrl: "http://localhost:8000/twirp",
-// }));
+export const protobufClient = new HaberdasherClientProtobuf(NodeHttpRPC({
+    baseUrl: "http://localhost:8000/twirp",
+}));

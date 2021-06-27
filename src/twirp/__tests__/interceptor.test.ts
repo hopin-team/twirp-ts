@@ -7,7 +7,7 @@ describe("Interceptor", () => {
 
     it("will chain interceptors", async () => {
         const spy = jest.fn()
-        const interceptor0: Interceptor<any, any> = async (ctx, typedRequest, next) => {
+        const interceptor0: Interceptor<TwirpContext, any, any> = async (ctx, typedRequest, next) => {
             spy();
             const response = await next(ctx, typedRequest);
             spy();
@@ -15,12 +15,12 @@ describe("Interceptor", () => {
         }
 
         const spy1 = jest.fn()
-        const interceptor1: Interceptor<any, any> = async (ctx, typedRequest, next) => {
+        const interceptor1: Interceptor<TwirpContext, any, any> = async (ctx, typedRequest, next) => {
             spy1();
             return next(ctx, typedRequest);
         }
 
-        const chain = chainInterceptors(interceptor0, interceptor1) as Interceptor<any, any>;
+        const chain = chainInterceptors(interceptor0, interceptor1) as Interceptor<TwirpContext, any, any>;
         const ctx: TwirpContext = {
             req: jest.fn() as any,
             res: jest.fn() as any,

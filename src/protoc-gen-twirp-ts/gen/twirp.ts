@@ -1,5 +1,6 @@
-import {CodeGeneratorResponse_File, FileDescriptorProto, ServiceDescriptorProto} from "ts-proto-descriptors";
-import {Code, code, imp, joinCode} from "ts-poet";
+import {DescriptorRegistry, FileDescriptorProto, ServiceDescriptorProto, SymbolTable} from "@protobuf-ts/plugin-framework";
+import {code, imp, joinCode} from "ts-poet";
+import { createLocalTypeName } from "../local-type-name";
 
 const TwirpServer = imp("TwirpServer@twirp-ts");
 const Interceptor = imp("Interceptor@twirp-ts");
@@ -10,29 +11,21 @@ const TwirpContext = imp("TwirpContext@twirp-ts");
 const TwirpError = imp("TwirpError@twirp-ts");
 const TwirpErrorCode = imp("TwirpErrorCode@twirp-ts");
 
-const {messageToTypeName} = require('ts-proto/build/types');
-
 /**
  * Generates the server and client implementation
  * of the twirp specification
  * @param ctx
  * @param file
  */
-export function generate(ctx: any, file: FileDescriptorProto) {
-    const files = file.service.map(async (service) => {
-
-        const content = await joinCode([
+export async function generate(ctx: any, file: FileDescriptorProto) {
+    const contents = file.service.map((service) => {
+        return joinCode([
             genClient(ctx, file, service),
             genServer(ctx, file, service)
-        ], { on: "\n\n" }).toStringWithImports();
-
-        return CodeGeneratorResponse_File.fromPartial({
-            name: `${service.name.toLowerCase()}.twirp.ts`,
-            content: content,
-        });
+        ], { on: "\n\n" })
     });
 
-    return Promise.all(files);
+    return joinCode(contents, { on: "\n\n"}).toStringWithImports();
 }
 
 function genClient(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
@@ -60,7 +53,7 @@ function genClient(ctx: any, file: FileDescriptorProto, service: ServiceDescript
 function genTwirpClientInterface(ctx: any, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
+            ${method.name}(request: ${relativeMessageName(ctx, method.inputType)}): Promise<${relativeMessageName(ctx, method.outputType)}>
         `
     });
 
@@ -80,8 +73,8 @@ function genTwirpClientInterface(ctx: any, service: ServiceDescriptorProto) {
 function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                const data = ${messageToTypeName(ctx,method.inputType)}.${encodeJSON(ctx,"request")};
+            ${method.name}(request: ${relativeMessageName(ctx, method.inputType)}): Promise<${relativeMessageName(ctx,method.outputType)}> {
+                const data = ${relativeMessageName(ctx,method.inputType)}.${encodeJSON(ctx,"request")};
                 const promise = this.rpc.request(
                   "${file.package}.${service.name}",
                   "${method.name}",
@@ -120,8 +113,8 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: Se
 function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${method.name}(request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx,method.outputType)}> {
-                const data = ${messageToTypeName(ctx,method.inputType)}.${encodeProtobuf(ctx, "request")};
+            ${method.name}(request: ${relativeMessageName(ctx, method.inputType)}): Promise<${relativeMessageName(ctx,method.outputType)}> {
+                const data = ${relativeMessageName(ctx,method.inputType)}.${encodeProtobuf(ctx, "request")};
                 const promise = this.rpc.request(
                   "${file.package}.${service.name}",
                   "${method.name}",
@@ -161,7 +154,7 @@ function genTwirpService(ctx: any, service: ServiceDescriptorProto) {
 
     const serverMethods = service.method.map((method) => {
         return code`
-            ${method.name}(ctx: ${TwirpContext}, request: ${messageToTypeName(ctx, method.inputType)}): Promise<${messageToTypeName(ctx, method.outputType)}>
+            ${method.name}(ctx: T, request: ${relativeMessageName(ctx, method.inputType)}): Promise<${relativeMessageName(ctx, method.outputType)}>
         `
     })
 
@@ -174,7 +167,7 @@ function genTwirpService(ctx: any, service: ServiceDescriptorProto) {
     })
 
     return code`
-        export interface ${importService}Twirp {
+        export interface ${importService}Twirp<T extends ${TwirpContext} = ${TwirpContext}> {
             ${joinCode(serverMethods, {on: `\n`})}
         }
         
@@ -203,8 +196,8 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
         
         ${genTwirpService(ctx, service)}
     
-        export function create${importService}Server(service: ${importService}Twirp) {
-            return new ${TwirpServer}<${importService}Twirp>({
+        export function create${importService}Server<T extends ${TwirpContext} = ${TwirpContext}>(service: ${importService}Twirp<T>) {
+            return new ${TwirpServer}<${importService}Twirp, T>({
                 service,
                 packageName: "${file.package}",
                 serviceName: "${importService}",
@@ -227,7 +220,7 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
 function genRouteHandler(ctx: any, service: ServiceDescriptorProto) {
     const cases = service.method.map(method => code`
     case "${method.name}":
-        return async (ctx: ${TwirpContext}, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) => {
+        return async (ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) => {
             ctx = {...ctx, methodName: "${method.name}" }
             await events.onMatch(ctx);
             return handle${method.name}Request(ctx, service, data, interceptors)
@@ -235,7 +228,7 @@ function genRouteHandler(ctx: any, service: ServiceDescriptorProto) {
     `)
 
     return code`
-    function match${service.name}Route(method: string, events: ${RouterEvents}) {
+    function match${service.name}Route<T extends ${TwirpContext} = ${TwirpContext}>(method: string, events: ${RouterEvents}<T>) {
         switch(method) {
         ${joinCode(cases, { on: `\n`})}
         default:
@@ -255,12 +248,12 @@ function genRouteHandler(ctx: any, service: ServiceDescriptorProto) {
 function genHandleRequestMethod(ctx: any, service: ServiceDescriptorProto) {
     return service.method.map(method => {
         return code`
-        function handle${method.name}Request(ctx: ${TwirpContext}, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]): Promise<string | Uint8Array> {
+        function handle${method.name}Request<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]): Promise<string | Uint8Array> {
             switch (ctx.contentType) {
                 case ${TwirpContentType}.JSON:
-                    return handle${method.name}JSON(ctx, service, data, interceptors);
+                    return handle${method.name}JSON<T>(ctx, service, data, interceptors);
                 case ${TwirpContentType}.Protobuf:
-                    return handle${method.name}Protobuf(ctx, service, data, interceptors);
+                    return handle${method.name}Protobuf<T>(ctx, service, data, interceptors);
                 default:
                     const msg = "unexpected Content-Type";
                     throw new ${TwirpError}(${TwirpErrorCode}.BadRoute, msg);
@@ -279,7 +272,7 @@ function genHandleJSONRequest(ctx: any, service: ServiceDescriptorProto) {
     return service.method.map(method => {
         return code`
         
-        async function handle${method.name}JSON(ctx: ${TwirpContext}, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
+        async function handle${method.name}JSON<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
             let request: ${relativeMessageName(ctx,method.inputType)}
             let response: ${relativeMessageName(ctx,method.outputType)}
             
@@ -292,7 +285,7 @@ function genHandleJSONRequest(ctx: any, service: ServiceDescriptorProto) {
             }
                 
             if (interceptors && interceptors.length > 0) {
-                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
+                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
                 response = await interceptor(ctx, request, (ctx, inputReq) => {
                     return service.${method.name}(ctx, inputReq);
                 });
@@ -315,7 +308,7 @@ function genHandleProtobufRequest(ctx: any, service: ServiceDescriptorProto) {
     return service.method.map(method => {
         return code`
         
-        async function handle${method.name}Protobuf(ctx: ${TwirpContext}, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
+        async function handle${method.name}Protobuf<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>[]) {
             let request: ${relativeMessageName(ctx,method.inputType)}
             let response: ${relativeMessageName(ctx,method.outputType)}
             
@@ -327,7 +320,7 @@ function genHandleProtobufRequest(ctx: any, service: ServiceDescriptorProto) {
             }
                 
             if (interceptors && interceptors.length > 0) {
-                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
+                const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx,method.inputType)}, ${relativeMessageName(ctx,method.outputType)}>
                 response = await interceptor(ctx, request, (ctx, inputReq) => {
                     return service.${method.name}(ctx, inputReq);
                 });
@@ -335,7 +328,7 @@ function genHandleProtobufRequest(ctx: any, service: ServiceDescriptorProto) {
                 response = await service.${method.name}(ctx, request)
             }
             
-            return ${relativeMessageName(ctx,method.outputType)}.${encodeProtobuf(ctx, "response")};
+            return Buffer.from(${relativeMessageName(ctx,method.outputType)}.${encodeProtobuf(ctx, "response")});
         }
     `
     })
@@ -374,7 +367,7 @@ function encodeJSON(ctx: any, dataName: string) {
         return code`toJSON(${dataName})`
     }
 
-    return code`toJson(${dataName})`
+    return code`toJson(${dataName}, {useProtoFieldName: true})`
 }
 
 function encodeProtobuf(ctx: any, dataName: string) {
@@ -397,6 +390,17 @@ function decodeProtobuf(ctx: any, dataName: string) {
     return code`fromBinary(${dataName})`
 }
 
-function relativeMessageName(ctx: any, messageName: string): string {
-    return messageToTypeName(ctx, messageName);
+function relativeMessageName(ctx: any, messageName?: string) {
+    const registry = ctx.registry as DescriptorRegistry;
+    const symbols = ctx.symbols as SymbolTable;
+
+    const entry = symbols.find(registry.resolveTypeName(messageName!));
+
+    if (!entry) {
+        throw new Error(`Message ${messageName} not found`);
+    }
+
+    const messageType = createLocalTypeName(entry.descriptor, registry);
+
+    return code`${imp(`${messageType}@./${entry.file.getFilename()}`)}`;
 }

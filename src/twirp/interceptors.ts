@@ -8,14 +8,14 @@ import {TwirpContext} from "./context";
 // Just like http middleware, interceptors can mutate requests and responses.
 // This can enable some powerful integrations, but it should be used with much care
 // because it may result in code that is very hard to debug.
-export type Next<Request = any, Response = any> = (ctx: TwirpContext, typedRequest: Request) => Promise<Response>
-export type Interceptor<Request, Response> = (ctx: TwirpContext, typedRequest: Request, next: Next<Request, Response>) => Promise<Response>;
+export type Next<Context extends TwirpContext = TwirpContext, Request = any, Response = any> = (ctx: Context, typedRequest: Request) => Promise<Response>
+export type Interceptor<Context extends TwirpContext, Request, Response> = (ctx: Context, typedRequest: Request, next: Next<Context, Request, Response>) => Promise<Response>;
 
 
 // chains multiple Interceptors into a single Interceptor.
 // The first interceptor wraps the second one, and so on.
 // Returns null if interceptors is empty.
-export function chainInterceptors<Request, Response>(...interceptors: Interceptor<Request, Response>[]): Interceptor<Request, Response> | undefined {
+export function chainInterceptors<Context extends TwirpContext, Request, Response>(...interceptors: Interceptor<Context, Request, Response>[]): Interceptor<Context, Request, Response> | undefined {
     if (interceptors.length === 0) {
         return;
     }
@@ -26,10 +26,10 @@ export function chainInterceptors<Request, Response>(...interceptors: Intercepto
 
     const first = interceptors[0];
     return async (ctx, request, handler) => {
-        let next: Next<Request, Response> = handler;
+        let next: Next<Context, Request, Response> = handler;
 
         for (let i = interceptors.length - 1; i > 0; i--) {
-            next = ((next): Next<Request, Response> => (ctx, typedRequest) => {
+            next = ((next): Next<Context, Request, Response> => (ctx, typedRequest) => {
                 return interceptors[i](ctx, typedRequest, next);
             })(next);
         }

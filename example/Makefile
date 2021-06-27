@@ -12,11 +12,13 @@ clean:
 ts-proto: clean
 	protoc \
 	-I ./protos \
-	--plugin=protoc-gen-ts=$(PROTOC_GEN_TS_PROTO_BIN) \
+	--plugin=protoc-gen-ts_proto=$(PROTOC_GEN_TS_PROTO_BIN) \
 	--plugin=protoc-gen-twirp_ts=$(PROTOC_GEN_TWIRP_BIN) \
 	--ts_proto_opt=esModuleInterop=true \
-	--ts_proto_opt=outputClientImpl=false \
+	--ts_proto_opt=useContext=true \
 	--ts_proto_out=$(OUT_DIR) \
+	--twirp_ts_opt="gateway" \
+	--twirp_ts_opt="ts_proto" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
 
@@ -26,8 +28,9 @@ protobuf-ts: clean
 	--plugin=protoc-gen-ts=$(PROTOC_GEN_PROTOBUF_TS_BIN) \
 	--plugin=protoc-gen-twirp_ts=$(PROTOC_GEN_TWIRP_BIN) \
 	--ts_opt=client_none \
+	--ts_opt=generate_dependencies \
 	--ts_out=$(OUT_DIR) \
-	--twirp_ts_opt="protobufts=true" \
+	--twirp_ts_opt="gateway" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
 
