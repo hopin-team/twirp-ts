@@ -1,8 +1,8 @@
 import express from 'express';
 import {createHaberdasherServer} from "./generated/service.twirp";
-import {Hat} from "./generated/service";
-import {jsonClient, protobufClient} from "./client";
+import { FindHatRPC, Hat, ListHatRPC } from "./generated/service";
 import { createGateway } from "./generated/gateway.twirp";
+import {jsonClient, protobufClient} from "./client";
 
 const server = createHaberdasherServer({
     async MakeHat(ctx, request): Promise<Hat> {
@@ -12,12 +12,18 @@ const server = createHaberdasherServer({
             color: "blue",
         });
     },
+    async FindHat(ctx, request): Promise<FindHatRPC> {
+        return request;
+    },
+    async ListHat(ctx, request): Promise<ListHatRPC> {
+        return request;
+    }
 })
 
 const app = express();
 const gateway = createGateway();
 
-app.use(gateway.rewriteMiddleware())
+app.use(gateway.twirpRewrite());
 app.post(server.matchingPath(), server.httpHandler());
 
 app.listen(8000, async () => {
