@@ -12,7 +12,7 @@ describe("Server twirp specification", () => {
     beforeEach(() => {
         const triwpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
-                return Hat.fromPartial({
+                return Hat.create({
                     name: "cap",
                     color: "blue",
                     inches: 3,
@@ -136,7 +136,7 @@ describe("Hooks & Interceptors", () => {
     beforeEach(() => {
         twirpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
-                return Hat.fromPartial({
+                return Hat.create({
                     name: "cap",
                     color: "blue",
                     inches: 3,

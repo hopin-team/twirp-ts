@@ -1,6 +1,6 @@
 import {DescriptorRegistry, FileDescriptorProto, ServiceDescriptorProto, SymbolTable} from "@protobuf-ts/plugin-framework";
 import {code, imp, joinCode} from "ts-poet";
-import { createLocalTypeName } from "./local-type-name";
+import { createLocalTypeName } from "../local-type-name";
 
 const TwirpServer = imp("TwirpServer@twirp-ts");
 const Interceptor = imp("Interceptor@twirp-ts");

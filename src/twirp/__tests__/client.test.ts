@@ -17,7 +17,7 @@ describe("Twirp Clients", () => {
     beforeEach(() => {
         const twirpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
-                return Hat.fromPartial({
+                return Hat.create({
                     name: "cap",
                     color: "blue",
                     inches: 100,

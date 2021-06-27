@@ -29,7 +29,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
         return new Promise((resolve, rejected) => {
             const responseChunks: Buffer[] = [];
 
-            const requestData = contentType === "application/protobuf" ? data : JSON.stringify(data);
+            const requestData = contentType === "application/protobuf" ? Buffer.from(data as Uint8Array) : JSON.stringify(data);
             const url = new URL(options.baseUrl);
             const isHttps = url.protocol === "https";
 

@@ -3,4 +3,5 @@ export * from './server';
 export * from './interceptors';
 export * from './hooks';
 export * from './errors';
+export * from './gateway';
 export * from './http.client';
