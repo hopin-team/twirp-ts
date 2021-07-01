@@ -119,6 +119,9 @@ protoc \
 ```
 </details>
 
+If you'd like the plugin to generate an `index.ts` file exporting all your generated code
+simply add `--twirp_ts_opt="index_file"`
+
 ### Server
 
 Once you've generated the server code you can simply start a server as following:

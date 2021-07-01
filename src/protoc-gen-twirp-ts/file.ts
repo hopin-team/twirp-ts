@@ -4,7 +4,7 @@ export class File implements GeneratedFile {
 
     private content = "";
 
-    constructor(private readonly fileName: string) {
+    constructor(public readonly fileName: string) {
     }
 
     getFilename(): string {

@@ -3,7 +3,7 @@ import * as https from 'https';
 import {URL} from "url";
 import {TwirpError} from "./errors";
 
-interface Rpc {
+export interface Rpc {
     request(
         service: string,
         method: string,

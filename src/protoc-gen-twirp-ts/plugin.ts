@@ -10,6 +10,7 @@ import { generate } from "./gen/twirp";
 import { genGateway } from "./gen/gateway";
 import { createLocalTypeName } from "./local-type-name";
 import { Interpreter } from "./interpreter";
+import * as fs from "fs";
 
 export class ProtobuftsPlugin extends PluginBase<File> {
 
@@ -19,6 +20,9 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     },
     gateway: {
       description: "generate the twirp gateway",
+    },
+    index_file: {
+      description: "generate an index.ts file that exports all the types"
     }
   }
 
@@ -61,11 +65,41 @@ export class ProtobuftsPlugin extends PluginBase<File> {
       files.push(gatewayFileOut);
     }
 
+    // Create index file
+    if (params.index_file) {
+      files.push(genIndexFile(registry, params.gateway));
+    }
+
     return files;
   }
 
   // we support proto3-optionals, so we let protoc know
   protected getSupportedFeatures = () => [CodeGeneratorResponse_Feature.PROTO3_OPTIONAL];
+}
+
+function genIndexFile(registry: DescriptorRegistry, withGateway: boolean) {
+  const fileToExport = registry.allFiles()
+    .filter((fileDescriptor) => {
+      let hasExports = false;
+      registry.visitTypes(fileDescriptor, descriptor => {
+        // we are not interested in synthetic types like map entry messages
+        if (registry.isSyntheticElement(descriptor)) return;
+        hasExports = true;
+      });
+
+      return hasExports;
+    })
+    .map((file => file.name?.replace(".proto", "")));
+
+  if (withGateway) {
+    fileToExport.push('gateway.twirp');
+  }
+
+  const indexFile = new File('index.ts');
+
+  return indexFile.setContent(fileToExport.map((fileName) => {
+    return `export * from "./${fileName}";`
+  }).join("\n"));
 }
 
 new ProtobuftsPlugin().run().then(() => {
