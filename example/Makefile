@@ -19,7 +19,7 @@ ts-proto: clean
 	--ts_proto_out=$(OUT_DIR) \
 	--twirp_ts_opt="gateway" \
 	--twirp_ts_opt="ts_proto" \
-	--twirp_ts_opt="index_file"
+	--twirp_ts_opt="index_file" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
 
@@ -32,7 +32,7 @@ protobuf-ts: clean
 	--ts_opt=generate_dependencies \
 	--ts_out=$(OUT_DIR) \
 	--twirp_ts_opt="gateway" \
-	--twirp_ts_opt="index_file"
+	--twirp_ts_opt="index_file" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
 

@@ -12,7 +12,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "express": "^4.17.1",
-    "twirp-ts": "^2.1.0",
+    "twirp-ts": "^2.1.1",
     "@protobuf-ts/plugin": "^2.0.0-alpha.27",
     "ts-proto": "^1.81.3"
   },
