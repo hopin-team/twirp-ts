@@ -45,7 +45,7 @@ export async function genGateway(ctx: any, files: readonly FileDescriptorProto[]
       service.method.forEach((method) => {
         const options = ctx.interpreter.readOptions(method);
 
-        if (options["google.api.http"]) {
+        if (options && options["google.api.http"]) {
           const httpSpec = options["google.api.http"] as HttpOption;
 
           all.push(parseHttpOption(
