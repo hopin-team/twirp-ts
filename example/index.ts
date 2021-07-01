@@ -1,8 +1,7 @@
 import express from 'express';
 import {createHaberdasherServer} from "./generated/service.twirp";
-import { FindHatRPC, Hat, ListHatRPC } from "./generated/service";
-import { createGateway } from "./generated/gateway.twirp";
 import {jsonClient, protobufClient} from "./client";
+import { createGateway, FindHatRPC, Hat, ListHatRPC } from "./generated";
 
 const server = createHaberdasherServer({
     async MakeHat(ctx, request): Promise<Hat> {
