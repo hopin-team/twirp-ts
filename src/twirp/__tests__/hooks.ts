@@ -20,6 +20,12 @@ describe("Hooks behaviour", () => {
             requestSent: (ctx) => {
                 hook1Spy("sent");
             },
+            responseSent: (ctx) => {
+                hook1Spy("sent");
+            },
+            responsePrepared: (ctx) => {
+                hook1Spy("prepared");
+            },
             error: (ctx, err) => {
                 hook1Spy("error");
             }
@@ -39,6 +45,12 @@ describe("Hooks behaviour", () => {
             requestSent: (ctx) => {
                 hook2Spy("sent");
             },
+            responseSent: (ctx) => {
+                hook2Spy("sent");
+            },
+            responsePrepared: (ctx) => {
+                hook2Spy("prepared");
+            },
             error: (ctx, err) => {
                 hook2Spy("error");
             }
@@ -50,7 +62,7 @@ describe("Hooks behaviour", () => {
 
         expect(chainedHook).not.toBeNull();
 
-        const hookNames = ["requestReceived", "requestRouted", "requestPrepared", "requestSent", "error"];
+        const hookNames = ["requestReceived", "requestRouted", "requestPrepared", "requestSent", "responseSent", "responsePrepared", "error"];
 
         hookNames.map(hookName => {
             const ctx: TwirpContext = {

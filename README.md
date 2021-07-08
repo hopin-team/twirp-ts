@@ -233,10 +233,10 @@ const serverHooks: ServerHooks = {
     requestRouted: (ctx) => {
         console.log("Requested");
     },
-    requestPrepared: (ctx) => {
+    responsePrepared: (ctx) => {
         console.log("Prepared");
     },
-    requestSent: (ctx) => {
+    responseSent: (ctx) => {
         console.log("Sent");
     },
     error: (ctx, err) => {

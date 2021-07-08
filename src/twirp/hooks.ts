@@ -21,8 +21,12 @@ import {TwirpError} from "./errors";
 export interface ServerHooks<T extends TwirpContext = TwirpContext> {
     requestReceived?: (ctx: T) => void | Promise<void>
     requestRouted?: (ctx: T) => void | Promise<void>
+    /**@deprecated Use responsePrepared instead*/
     requestPrepared?: (ctx: T) => void | Promise<void>
+    responsePrepared?: (ctx: T) => void | Promise<void>
+    /**@deprecated Use responseSent instead*/
     requestSent?: (ctx: T) => void | Promise<void>
+    responseSent?: (ctx: T) => void | Promise<void>
     error?: (ctx: T, err: TwirpError) => void | Promise<void>
 }
 
@@ -55,7 +59,19 @@ export function chainHooks<T extends TwirpContext = TwirpContext>(...hooks: Serv
                 if (!hook.requestPrepared) {
                     continue;
                 }
+                console.warn(
+                  "hook requestPrepared is deprecated and will be deprecated in the next release. " +
+                  "Please use responsePrepared instead."
+                );
                 await hook.requestPrepared(ctx);
+            }
+        },
+        async responsePrepared(ctx) {
+            for (const hook of hooks) {
+                if (!hook.responsePrepared) {
+                    continue;
+                }
+                await hook.responsePrepared(ctx);
             }
         },
         async requestSent(ctx) {
@@ -63,7 +79,19 @@ export function chainHooks<T extends TwirpContext = TwirpContext>(...hooks: Serv
                 if (!hook.requestSent) {
                     continue;
                 }
+                console.warn(
+                  "hook requestSent is deprecated and will be deprecated in the next release. " +
+                  "Please use responseSent instead."
+                );
                 await hook.requestSent(ctx);
+            }
+        },
+        async responseSent(ctx) {
+            for (const hook of hooks) {
+                if (!hook.responseSent) {
+                    continue;
+                }
+                await hook.responseSent(ctx);
             }
         },
         async requestRouted(ctx) {
@@ -93,6 +121,8 @@ export function isHook<T extends TwirpContext = TwirpContext>(object: any): obje
         'requestPrepared' in object ||
         'requestSent' in object ||
         'requestRouted' in object ||
+        'responsePrepared' in object ||
+        'responseSent' in object ||
         'error' in object
     );
 }

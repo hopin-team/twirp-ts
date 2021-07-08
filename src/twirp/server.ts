@@ -197,7 +197,11 @@ export class TwirpServer<T extends object, S extends TwirpContext = TwirpContext
             const body = await getRequestData(req);
             const response = await handler(ctx, this.service, body, this.interceptors);
 
-            await this.invokeHook("requestPrepared", ctx);
+            await Promise.all([
+              this.invokeHook("responsePrepared", ctx),
+                // keep backwards compatibility till next release
+              this.invokeHook("requestPrepared", ctx),
+            ]);
 
             resp.statusCode = 200;
             resp.setHeader("Content-Type", mimeContentType);
@@ -208,7 +212,11 @@ export class TwirpServer<T extends object, S extends TwirpContext = TwirpContext
                 writeError(resp, e);
             }
         } finally {
-            await this.invokeHook("requestSent", ctx);
+            await Promise.all([
+                this.invokeHook("responseSent", ctx),
+                // keep backwards compatibility till next release
+                this.invokeHook("requestSent", ctx),
+            ])
         }
     }
 
