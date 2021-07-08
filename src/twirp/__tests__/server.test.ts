@@ -9,8 +9,9 @@ import {TwirpServer} from "../server";
 describe("Server twirp specification", () => {
 
     let server: http.Server
+    let twirpServer: TwirpServer<any>
     beforeEach(() => {
-        const triwpServer = createHaberdasherServer({
+        twirpServer = createHaberdasherServer({
             async MakeHat(ctx: TwirpContext, request: Size): Promise<Hat> {
                 return Hat.create({
                     name: "cap",
@@ -26,7 +27,7 @@ describe("Server twirp specification", () => {
             }
         });
 
-        server = http.createServer(triwpServer.httpHandler());
+        server = http.createServer(twirpServer.httpHandler());
     })
 
     it("support only POST requests", async () => {
@@ -131,6 +132,24 @@ describe("Server twirp specification", () => {
                     twirp_invalid_route: "POST /twirp/twirp.example.haberdasher.Haberdasher/MakeHatDoesntExists"
                 },
                 msg: "no handler for path /twirp/twirp.example.haberdasher.Haberdasher/MakeHatDoesntExists"
+            })
+        })
+
+        it("support rawBody Buffer", async () => {
+            server = http.createServer(async (req, res) => {
+                (req as any).rawBody = Buffer.from(JSON.stringify({
+                    hatId: '1234',
+                }))
+                await twirpServer.httpHandler()(req, res)
+            })
+
+            const response = await supertest(server).post("/twirp/twirp.example.haberdasher.Haberdasher/FindHat")
+              .set('Content-Type', 'application/json')
+              .expect('Content-Type', "application/json")
+              .expect(200);
+
+            expect(response.body).toEqual({
+                hat_id: '1234'
             })
         })
     })

@@ -58,6 +58,14 @@ export function validateRequest(ctx: TwirpContext, request: http.IncomingMessage
  */
 export function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
+
+    const reqWithRawBody: http.IncomingMessage & {rawBody?: Buffer} = req;
+
+    if (reqWithRawBody.rawBody instanceof Buffer) {
+      resolve(reqWithRawBody.rawBody);
+      return;
+    }
+
     const chunks: Buffer[] = [];
     req.on('data', chunk => chunks.push(chunk));
     req.on('end', async () => {
