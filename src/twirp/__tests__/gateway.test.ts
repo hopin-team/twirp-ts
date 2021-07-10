@@ -1,13 +1,12 @@
 import http from "http";
 import { TwirpServer } from "../server";
-import { createHaberdasherServer, HaberdasherClientJSON, HaberdasherTwirp } from "../__mocks__/service.twirp";
+import { createHaberdasherServer, HaberdasherTwirp } from "../__mocks__/service.twirp";
 import { TwirpContext } from "../context";
 import { FindHatRPC, Hat, ListHatRPC, Size } from "../__mocks__/service";
 import { createGateway } from "../__mocks__/gateway.twirp";
 import { Gateway } from "../gateway";
 import supertest from "supertest";
 import { createHttpTerminator } from "http-terminator";
-import { NodeHttpRPC } from "../http.client";
 
 
 describe("Gateway", () => {

@@ -67,7 +67,7 @@ export class ProtobuftsPlugin extends PluginBase<File> {
 
     // Create index file
     if (params.index_file) {
-      files.push(genIndexFile(registry, params.gateway));
+      files.push(genIndexFile(registry, [...files]));
     }
 
     return files;
@@ -77,7 +77,7 @@ export class ProtobuftsPlugin extends PluginBase<File> {
   protected getSupportedFeatures = () => [CodeGeneratorResponse_Feature.PROTO3_OPTIONAL];
 }
 
-function genIndexFile(registry: DescriptorRegistry, withGateway: boolean) {
+function genIndexFile(registry: DescriptorRegistry, files: File[]) {
   const fileToExport = registry.allFiles()
     .filter((fileDescriptor) => {
       let hasExports = false;
@@ -91,8 +91,14 @@ function genIndexFile(registry: DescriptorRegistry, withGateway: boolean) {
     })
     .map((file => file.name?.replace(".proto", "")));
 
-  if (withGateway) {
-    fileToExport.push('gateway.twirp');
+  const compiledFiles = files.filter(file => file.getContent() !== "").map(file => {
+    return file.fileName.replace(".ts", "")
+  });
+
+  if (compiledFiles.length > 0) {
+    fileToExport.push(
+      ...compiledFiles,
+    )
   }
 
   const indexFile = new File('index.ts');

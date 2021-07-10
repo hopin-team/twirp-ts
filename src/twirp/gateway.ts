@@ -75,10 +75,7 @@ export class Gateway {
     req.method = "POST";
     req.headers["content-type"] = "application/json";
 
-    process.nextTick(() => {
-      req.emit("data", Buffer.from(JSON.stringify(body)))
-      req.emit("end");
-    });
+    (req as any).rawBody = Buffer.from(JSON.stringify(body))
   }
 
   /**
