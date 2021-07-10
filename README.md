@@ -1,6 +1,6 @@
 # Twirp-TS
 
-A complete server and client implementation of the awesome [Twirp Specification](https://twitchtv.github.io/twirp/docs/spec_v7.html) witten in typescript. 
+A complete server and client implementation of the awesome [Twirp Specification](https://twitchtv.github.io/twirp/docs/spec_v7.html) written in typescript. 
 
 Supported spec v7 and v8
 
