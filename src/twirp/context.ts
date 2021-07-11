@@ -1,5 +1,5 @@
 import * as http from "http";
-import {TwirpContentType} from "./server";
+import { TwirpContentType } from "./request";
 
 export interface TwirpContext<Request = http.IncomingMessage, Response = http.ServerResponse> {
     readonly packageName: string

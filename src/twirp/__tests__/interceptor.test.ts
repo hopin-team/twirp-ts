@@ -1,6 +1,6 @@
 import {chainInterceptors, Interceptor} from "../interceptors";
 import {TwirpContext} from "../context";
-import {TwirpContentType} from "../server";
+import { TwirpContentType } from "../request";
 
 
 describe("Interceptor", () => {

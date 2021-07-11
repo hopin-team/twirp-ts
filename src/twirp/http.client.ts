@@ -57,7 +57,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
                 res.on('end', () => {
                     const data = Buffer.concat(responseChunks);
                     if (res.statusCode != 200) {
-                        rejected(warpErrorResponseToTwirpError(data.toString()));
+                        rejected(wrapErrorResponseToTwirpError(data.toString()));
                     } else {
                         if (contentType === "application/json") {
                             resolve(JSON.parse(data.toString()));
@@ -80,6 +80,6 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
 });
 
 
-export function warpErrorResponseToTwirpError(errorResponse: string) {
+export function wrapErrorResponseToTwirpError(errorResponse: string) {
     return TwirpError.fromObject(JSON.parse(errorResponse));
 }

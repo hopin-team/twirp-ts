@@ -1,7 +1,7 @@
 import {chainHooks, ServerHooks} from "../hooks";
 import {TwirpContext} from "../context";
-import {TwirpContentType} from "../server";
 import {InternalServerError} from "../errors";
+import { TwirpContentType } from "../request";
 
 describe("Hooks behaviour", () => {
 

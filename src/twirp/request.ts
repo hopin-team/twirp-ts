@@ -1,7 +1,27 @@
 import { TwirpContext } from "./context";
 import http from "http";
 import { BadRouteError, TwirpError, TwirpErrorCode } from "./errors";
-import { TwirpContentType, TwirpRequest } from "./server";
+
+
+/**
+ * Supported Twirp Content-Type
+ */
+export enum TwirpContentType {
+  Protobuf,
+  JSON,
+  Unknown,
+}
+
+/**
+ * Represent a Twirp request
+ */
+export interface TwirpRequest {
+  prefix?: string
+  pkgService: string
+  method: string
+  contentType: TwirpContentType
+  mimeContentType: string
+}
 
 /**
  * Get supported content-type

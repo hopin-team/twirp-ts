@@ -12,7 +12,7 @@ import {
 } from "./errors";
 
 /**
- * Options passed to the server implementation
+ * Twirp Server options
  */
 interface TwirpServerOptions<T extends object, S extends TwirpContext = TwirpContext> {
     service: T
@@ -23,43 +23,23 @@ interface TwirpServerOptions<T extends object, S extends TwirpContext = TwirpCon
 }
 
 /**
- * Options passes to the default httpHandler
+ * httpHandler options
  */
 export interface HttpHandlerOptions {
     prefix?: string | false
 }
 
 /**
- * Represent a Twirp request
- */
-export interface TwirpRequest {
-    prefix?: string
-    pkgService: string
-    method: string
-    contentType: TwirpContentType
-    mimeContentType: string
-}
-
-/**
- * Handles user handler
+ * Handles a twirp request
  */
 export type TwirpHandler<T, S extends TwirpContext = TwirpContext> = (ctx: S, service: T, data: Buffer, interceptors?: Interceptor<S, any, any>[]) => Promise<Uint8Array | string>;
 
 /**
- * Callbacks event for routing matches
+ * Callback events for route matching
  */
 export interface RouterEvents<T extends TwirpContext = TwirpContext> {
     onMatch: (ctx: T) => Promise<void> | void
     onNotFound: () => Promise<void> | void
-}
-
-/**
- * Supported Twirp Content-Type
- */
-export enum TwirpContentType {
-    Protobuf,
-    JSON,
-    Unknown,
 }
 
 type keys<T extends object> = Array<keyof T>
@@ -254,7 +234,7 @@ export function writeError(res: http.ServerResponse, error: Error | TwirpError):
 }
 
 /**
- * Make sure that the error passes is a TwirpError
+ * Make sure that the error passed is a TwirpError
  * otherwise it will wrap it into an InternalError
  * @param err
  */
