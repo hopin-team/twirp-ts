@@ -35,7 +35,7 @@ export type HttpRulePattern = {
 
 interface HttpOption extends HttpRulePattern {
   body: string;
-  response_key: string
+  responseBody: string
   additional_bindings: HttpOption
 }
 
@@ -116,7 +116,7 @@ function parseHttpOption(httpOption: HttpOption, packageName: string, methodName
     matchingPath,
     matcher: match(matchingPath),
     bodyKey: httpOption.body,
-    responseBodyKey: httpOption.response_key,
+    responseBodyKey: httpOption.responseBody,
   };
 
   return httpRoute;
