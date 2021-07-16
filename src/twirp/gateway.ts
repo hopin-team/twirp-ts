@@ -33,7 +33,7 @@ type RouteRules = {
 
 /**
  * The Gateway proxies http requests to Twirp Compliant
- * requests.
+ * handlers
  */
 export class Gateway {
   constructor(public readonly routes: RouteRules) {
@@ -80,7 +80,7 @@ export class Gateway {
 
   /**
    * Create a reverse proxy handler to
-   * proxy http requests to Twirp Compliant requests
+   * proxy http requests to Twirp Compliant handlers
    * @param httpClientOption
    */
   reverseProxy(httpClientOption: HttpClientOptions) {

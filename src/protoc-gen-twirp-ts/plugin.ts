@@ -23,6 +23,9 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     },
     index_file: {
       description: "generate an index.ts file that exports all the types"
+    },
+    emit_default_values: {
+      description: "Json encode and decode will emit default values"
     }
   }
 
@@ -34,6 +37,7 @@ export class ProtobuftsPlugin extends PluginBase<File> {
 
     const ctx = {
       lib: params.ts_proto ? 'ts-proto' : 'protobuf-ts',
+      emitDefaultValues: params.emit_default_values,
       symbols,
       registry,
       interpreter,
