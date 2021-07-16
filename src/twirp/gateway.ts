@@ -45,7 +45,7 @@ export class Gateway {
    */
   twirpRewrite(prefix = "/twirp") {
     return (req: http.IncomingMessage, resp: http.ServerResponse, next: (err?: Error) => void) => {
-      this.rewrite(req, prefix)
+      this.rewrite(req, resp, prefix)
         .then(() => next())
         .catch(e => {
           if (e instanceof TwirpError) {
@@ -62,9 +62,10 @@ export class Gateway {
   /**
    * Rewrite an incoming request to a Twirp compliant request
    * @param req
+   * @param resp
    * @param prefix
    */
-  async rewrite(req: http.IncomingMessage, prefix = "/twirp") {
+  async rewrite(req: http.IncomingMessage, resp: http.ServerResponse, prefix = "/twirp") {
     const [match, route] = this.matchRoute(req);
 
     const body = await this.prepareTwirpBody(req, match, route);
@@ -76,6 +77,13 @@ export class Gateway {
     req.headers["content-type"] = "application/json";
 
     (req as any).rawBody = Buffer.from(JSON.stringify(body))
+
+    if (route.responseBodyKey) {
+      const endFn = resp.end.bind(resp);
+      resp.end = function (chunk: any) {
+        endFn(`{ "${route.responseBodyKey}": ${chunk} }`)
+      }
+    }
   }
 
   /**
