@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Haberdasher
+  version: 1.0.0
+paths:
+  /hat:
+    get:
+      summary: ""
+      operationId: Haberdasher_ListHat
+      parameters:
+        - name: filters
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Filter"
+            description: ""
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  undefined:
+                    $ref: "#/components/schemas/ListHatRPC"
+  "/hat/{hat_id}":
+    get:
+      summary: ""
+      operationId: Haberdasher_FindHat
+      parameters:
+        - name: hat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ""
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  undefined:
+                    $ref: "#/components/schemas/FindHatRPC"
+components:
+  schemas:
+    Size:
+      properties:
+        inches:
+          type: integer
+          description: must be > 0
+      description: Size of a Hat, in inches.
+    Hat:
+      properties:
+        id:
+          type: string
+          description: ""
+        inches:
+          type: integer
+          description: ""
+        color:
+          type: string
+          description: anything but "invisible"
+        name:
+          type: string
+          description: i.e. "bowler"
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Hat"
+          description: ""
+      description: A Hat is a piece of headwear made by a Haberdasher.
+    FindHatRPC:
+      properties:
+        hat_id:
+          type: string
+          description: ""
+      description: ""
+    ListHatRPC:
+      properties:
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Filter"
+          description: ""
+      description: ""
+    Filter:
+      properties:
+        order_by:
+          type: string
+          description: ""
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      description: ""
+    Pagination:
+      properties:
+        limit:
+          type: integer
+          description: ""
+        offset:
+          type: integer
+          description: ""
+      description: ""
