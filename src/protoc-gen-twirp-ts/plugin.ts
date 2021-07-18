@@ -10,7 +10,7 @@ import { generate } from "./gen/twirp";
 import { genGateway } from "./gen/gateway";
 import { createLocalTypeName } from "./local-type-name";
 import { Interpreter } from "./interpreter";
-import * as fs from "fs";
+import { genOpenAPI } from "./gen/open-api";
 
 export class ProtobuftsPlugin extends PluginBase<File> {
 
@@ -73,6 +73,15 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     if (params.index_file) {
       files.push(genIndexFile(registry, [...files]));
     }
+
+    // Open API
+    const docs = await genOpenAPI(ctx, registry.allFiles())
+
+    docs.forEach((doc) => {
+      const file = new File(`${doc.fileName}`)
+      file.setContent(doc.content)
+      files.push(file)
+    })
 
     return files;
   }
