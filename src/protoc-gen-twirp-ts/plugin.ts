@@ -10,7 +10,7 @@ import { generate } from "./gen/twirp";
 import { genGateway } from "./gen/gateway";
 import { createLocalTypeName } from "./local-type-name";
 import { Interpreter } from "./interpreter";
-import * as fs from "fs";
+import { genOpenAPI, OpenAPIType } from "./gen/open-api";
 
 export class ProtobuftsPlugin extends PluginBase<File> {
 
@@ -26,6 +26,12 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     },
     emit_default_values: {
       description: "Json encode and decode will emit default values"
+    },
+    openapi_twirp: {
+      description: "Generates an OpenAPI spec for twirp handlers"
+    },
+    openapi_gateway: {
+      description: "Generates an OpenAPI spec for gateway handlers"
     }
   }
 
@@ -73,6 +79,26 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     if (params.index_file) {
       files.push(genIndexFile(registry, [...files]));
     }
+
+    // Open API
+    const docs = [];
+    if (params.openapi_twirp) {
+      docs.push(
+        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.TWIRP)),
+      )
+    }
+
+    if (params.openapi_gateway) {
+      docs.push(
+        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.GATEWAY)),
+      )
+    }
+
+    docs.forEach((doc) => {
+      const file = new File(`${doc.fileName}`)
+      file.setContent(doc.content)
+      files.push(file)
+    })
 
     return files;
   }

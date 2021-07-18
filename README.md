@@ -21,6 +21,7 @@ Table of Contents:
   - [Errors](#errors)
   - [Gateway](#Gateway)
 - [Client](#twirp-client)
+- [Open API V3](#open-api-v3)
 - [Migrate to V2](#migrate-to-v2)
 - [How to Upgrade](#how-to-upgrade)
 
@@ -385,6 +386,21 @@ const implementation: Rpc = {
 export const jsonClient = new HaberdasherClientJSON(implementation);
 export const protobufClient = new HaberdasherClientProtobuf(implementation);
 ```
+
+## Open API V3
+
+You can now generate automatically an **OpenAPI V3** compliant spec out of your twirp protobuf definitions!
+
+We support the **Gateway** too!
+
+Add the following options to your `protoc` command:
+
+```
+--twirp_ts_opt="openapi_twirp" 
+--twirp_ts_opt="openapi_gateway"
+```
+
+Enjoy!
 
 ## Migrate to V2
 
