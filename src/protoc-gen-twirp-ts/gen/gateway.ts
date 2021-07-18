@@ -9,7 +9,7 @@ const pathToRegexpMatch = imp("match@path-to-regexp");
 
 const debug = (content: any) => writeFileSync(__dirname + "/debug.json", JSON.stringify(content, null, 2),"utf-8")
 
-enum Pattern {
+export enum Pattern {
   POST = 'post',
   GET = 'get',
   PATCH = 'patch',
@@ -33,7 +33,7 @@ export type HttpRulePattern = {
   [key in Pattern]: string
 }
 
-interface HttpOption extends HttpRulePattern {
+export interface HttpOption extends HttpRulePattern {
   body: string;
   responseBody: string
   additional_bindings: HttpOption
@@ -135,7 +135,7 @@ function matcher(url: string) {
   }).join("/");
 }
 
-function getMethod(httpSpec: HttpOption) {
+export function getMethod(httpSpec: HttpOption) {
   const possibleMethods = ["post", "get", "patch", "put", "delete"] as Pattern[];
 
   for (const method of possibleMethods) {
