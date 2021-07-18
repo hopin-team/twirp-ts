@@ -38,7 +38,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
     this.ListHat.bind(this);
   }
   MakeHat(request: Size): Promise<Hat> {
-    const data = Size.toJson(request, { useProtoFieldName: true });
+    const data = Size.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "MakeHat",
@@ -51,7 +54,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
   }
 
   FindHat(request: FindHatRPC): Promise<FindHatRPC> {
-    const data = FindHatRPC.toJson(request, { useProtoFieldName: true });
+    const data = FindHatRPC.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "FindHat",
@@ -64,7 +70,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
   }
 
   ListHat(request: ListHatRPC): Promise<ListHatRPC> {
-    const data = ListHatRPC.toJson(request, { useProtoFieldName: true });
+    const data = ListHatRPC.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "ListHat",
@@ -279,7 +288,10 @@ async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
   }
 
   return JSON.stringify(
-    Hat.toJson(response, { useProtoFieldName: true }) as string
+    Hat.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
 
@@ -314,7 +326,10 @@ async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
   }
 
   return JSON.stringify(
-    FindHatRPC.toJson(response, { useProtoFieldName: true }) as string
+    FindHatRPC.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
 
@@ -349,7 +364,10 @@ async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
   }
 
   return JSON.stringify(
-    ListHatRPC.toJson(response, { useProtoFieldName: true }) as string
+    ListHatRPC.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
 async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
