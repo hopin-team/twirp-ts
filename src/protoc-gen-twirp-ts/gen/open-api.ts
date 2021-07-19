@@ -42,7 +42,8 @@ export async function genOpenAPI(ctx: any, files: readonly FileDescriptorProto[]
         openapi: "3.0.3",
         info: {
           title: `${service.name}`,
-          version: "1.0.0"
+          version: "1.0.0",
+          description: genDescription(ctx, service),
         },
         paths: type === OpenAPIType.TWIRP ?
           genTwirpPaths(ctx, file, service) :
