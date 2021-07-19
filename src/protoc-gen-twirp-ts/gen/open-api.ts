@@ -51,8 +51,8 @@ export async function genOpenAPI(ctx: any, files: readonly FileDescriptorProto[]
       }
 
       const fileName = type === OpenAPIType.TWIRP ?
-        `${service.name?.toLowerCase()}.twirp.yaml` :
-        `${service.name?.toLowerCase()}.yaml`
+        `${service.name?.toLowerCase()}.twirp.openapi.yaml` :
+        `${service.name?.toLowerCase()}.openapi.yaml`
 
       documents.push({
         fileName,
@@ -175,7 +175,7 @@ function genGatewayPaths(ctx: any, file: FileDescriptorProto, service: ServiceDe
 function genGatewayResponse(ctx: any, httpOptions: HttpOption, message: DescriptorProto): OpenAPIV3.ResponsesObject {
   let schema: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject = {};
 
-  if (httpOptions.responseBody !== "") {
+  if (httpOptions.responseBody) {
     schema = {
       type: "object",
       properties: {

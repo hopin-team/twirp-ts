@@ -39,7 +39,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
                 client = http;
             }
 
-            const prefix = url.pathname ? url.pathname : ""
+            const prefix = url.pathname !== "/" ? url.pathname : ""
 
             const req = client.request({
                 ...(options ? options : {}),
