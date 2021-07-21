@@ -81,7 +81,11 @@ export class Gateway {
     if (route.responseBodyKey) {
       const endFn = resp.end.bind(resp);
       resp.end = function (chunk: any) {
-        endFn(`{ "${route.responseBodyKey}": ${chunk} }`)
+        if (resp.statusCode === 200) {
+          endFn(`{ "${route.responseBodyKey}": ${chunk} }`);
+        } else {
+          endFn(chunk);
+        }
       }
     }
   }
