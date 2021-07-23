@@ -6,43 +6,51 @@ import {
   SymbolTable,
 } from "@protobuf-ts/plugin-framework";
 import { File } from "./file";
-import { generate } from "./gen/twirp";
+import { generateTwirp, generateTwirpClient, generateTwirpServer } from "./gen/twirp";
 import { genGateway } from "./gen/gateway";
 import { createLocalTypeName } from "./local-type-name";
 import { Interpreter } from "./interpreter";
 import { genOpenAPI, OpenAPIType } from "./gen/open-api";
 
 export class ProtobuftsPlugin extends PluginBase<File> {
-
   parameters = {
     ts_proto: {
-      description: "use the ts-proto compiler",
+      description: "Use the ts-proto compiler (protobuf-ts by default)",
     },
     gateway: {
-      description: "generate the twirp gateway",
+      description: "Generates the twirp gateway",
     },
     index_file: {
-      description: "generate an index.ts file that exports all the types"
+      description: "Generates an index.ts file that exports all the types",
     },
     emit_default_values: {
-      description: "Json encode and decode will emit default values"
+      description: "Json encode and decode will emit default values",
     },
     openapi_twirp: {
-      description: "Generates an OpenAPI spec for twirp handlers"
+      description: "Generates an OpenAPI spec for twirp handlers",
     },
     openapi_gateway: {
-      description: "Generates an OpenAPI spec for gateway handlers"
-    }
-  }
+      description: "Generates an OpenAPI spec for gateway handlers",
+    },
+    standalone: {
+      description: "Generates client and server in 2 separate files",
+    },
+    client_only: {
+      description: "Only client will be generated (overrides 'standalone')",
+    },
+    server_only: {
+      description: "Only server will be generated (overrides 'standalone')",
+    },
+  };
 
   async generate(request: CodeGeneratorRequest): Promise<File[]> {
     const params = this.parseParameters(this.parameters, request.parameter),
-        registry = DescriptorRegistry.createFrom(request),
-        symbols = new SymbolTable(),
-        interpreter = new Interpreter(registry)
+      registry = DescriptorRegistry.createFrom(request),
+      symbols = new SymbolTable(),
+      interpreter = new Interpreter(registry);
 
     const ctx = {
-      lib: params.ts_proto ? 'ts-proto' : 'protobuf-ts',
+      lib: params.ts_proto ? "ts-proto" : "protobuf-ts",
       emitDefaultValues: params.emit_default_values,
       symbols,
       registry,
@@ -52,19 +60,56 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     const files = [];
 
     for (let fileDescriptor of registry.allFiles()) {
-      const messageFileOut = new File(`${fileDescriptor.name?.replace(".proto", "").toLowerCase()}`);
+      const messageFileOut = new File(
+        `${fileDescriptor.name?.replace(".proto", "").toLowerCase()}`
+      );
 
-      registry.visitTypes(fileDescriptor, descriptor => {
+      registry.visitTypes(fileDescriptor, (descriptor) => {
         // we are not interested in synthetic types like map entry messages
         if (registry.isSyntheticElement(descriptor)) return;
-        ctx.symbols.register(createLocalTypeName(descriptor, registry), descriptor, messageFileOut);
+        ctx.symbols.register(
+          createLocalTypeName(descriptor, registry),
+          descriptor,
+          messageFileOut
+        );
       });
 
-      // Twirp generation
-      const twirpFileOut = new File(`${fileDescriptor.name?.replace(".proto", "").toLowerCase()}.twirp.ts`);
-      const twirpContent = await generate(ctx, fileDescriptor);
-      twirpFileOut.setContent(twirpContent);
-      files.push(twirpFileOut);
+      // Generate a combined client and server bundle if no code gen
+      // options are passed.
+      if (!params.standalone && !params.client_only && !params.server_only) {
+        const twirpFileOut = new File(
+          `${fileDescriptor.name?.replace(".proto", "").toLowerCase()}.twirp.ts`
+        );
+        const twirpFileContent = await generateTwirp(ctx, fileDescriptor);
+        twirpFileOut.setContent(twirpFileContent);
+        files.push(twirpFileOut);
+      }
+
+      if (params.server_only && params.client_only) {
+        throw new Error(
+          "Only one of server_only or client_only can be passed."
+        );
+      }
+
+      if (params.server_only || params.standalone) {
+        const serverFileOut = new File(
+          `${fileDescriptor.name?.replace(".proto", "").toLowerCase()}.twirp.ts`
+        );
+        const serverContent = await generateTwirpServer(ctx, fileDescriptor);
+        serverFileOut.setContent(serverContent);
+        files.push(serverFileOut);
+      }
+
+      if (params.client_only || params.standalone) {
+        const clientFileOut = new File(
+          `${fileDescriptor.name
+            ?.replace(".proto", "")
+            .toLowerCase()}.twirp-client.ts`
+        );
+        const clientContent = await generateTwirpClient(ctx, fileDescriptor);
+        clientFileOut.setContent(clientContent);
+        files.push(clientFileOut);
+      }
     }
 
     // Gateway generation
