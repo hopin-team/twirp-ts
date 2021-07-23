@@ -361,7 +361,7 @@ const protobufClient = new HaberdasherClientProtobuf(NodeHttpRPC({
 }));
 ```
 
-You can check the [full example](https://github.com/hopin-team/twirp-ts/example/client.ts) on how to integrate the client with `axios`
+You can check the [full example](./example/client.ts) on how to integrate the client with `axios`.
 
 Here is a snippet:
 
