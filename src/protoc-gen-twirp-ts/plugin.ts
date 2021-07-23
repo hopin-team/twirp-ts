@@ -32,7 +32,13 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     },
     openapi_gateway: {
       description: "Generates an OpenAPI spec for gateway handlers"
-    }
+    },
+    disable_client_generation: {
+      description: "Disable client code generation"
+    },
+    disable_server_generation: {
+      description: "Disable server code generation"
+    },
   }
 
   async generate(request: CodeGeneratorRequest): Promise<File[]> {
@@ -62,7 +68,7 @@ export class ProtobuftsPlugin extends PluginBase<File> {
 
       // Twirp generation
       const twirpFileOut = new File(`${fileDescriptor.name?.replace(".proto", "").toLowerCase()}.twirp.ts`);
-      const twirpContent = await generate(ctx, fileDescriptor);
+      const twirpContent = await generate(ctx, fileDescriptor, params.disable_client_generation, params.disable_server_generation);
       twirpFileOut.setContent(twirpContent);
       files.push(twirpFileOut);
     }

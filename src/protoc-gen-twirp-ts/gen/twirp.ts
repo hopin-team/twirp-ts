@@ -18,12 +18,16 @@ const TwirpErrorCode = imp("TwirpErrorCode@twirp-ts");
  * @param ctx
  * @param file
  */
-export async function generate(ctx: any, file: FileDescriptorProto) {
+export async function generate(ctx: any, file: FileDescriptorProto, disableClient: boolean, disableServer: boolean) {
     const contents = file.service.map((service) => {
-        return joinCode([
-            genClient(ctx, file, service),
-            genServer(ctx, file, service)
-        ], { on: "\n\n" })
+        let genCode = [];
+        if (!disableClient) {
+          genCode.push(genClient(ctx, file, service))
+        }
+        if (!disableServer) {
+          genCode.push(genServer(ctx, file, service))
+        }
+        return joinCode(genCode, { on: "\n\n" })
     });
 
     return joinCode(contents, { on: "\n\n"}).toStringWithImports();
