@@ -13,7 +13,6 @@ export interface Rpc {
 }
 
 export type HttpClientOptions = Omit<(http.RequestOptions | https.RequestOptions), "path" | "host" | "port"> & {
-    prefix?: string
     baseUrl: string
 }
 
@@ -50,7 +49,9 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
                 path: `${prefix}/${service}/${method}`,
                 headers: {
                     'Content-Type': contentType,
-                    'Content-Length': contentType === "application/protobuf" ? Buffer.byteLength(requestData as Uint8Array) : Buffer.from(requestData as string).byteLength,
+                    'Content-Length': contentType === "application/protobuf" ?
+                      Buffer.byteLength(requestData as Uint8Array) :
+                      Buffer.from(requestData as string).byteLength,
                 },
             }, res => {
                 res.on('data', chunk => responseChunks.push(chunk));

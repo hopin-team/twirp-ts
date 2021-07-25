@@ -1,5 +1,3 @@
-import * as http from 'http';
-
 /**
  * Represents a twirp error
  */
