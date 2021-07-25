@@ -2,51 +2,20 @@ openapi: 3.0.3
 info:
   title: Haberdasher
   version: 1.0.0
+  description: Haberdasher service makes hats for clients.
 paths:
-  /twirp.example.haberdasher.Haberdasher/MakeHat:
-    post:
-      summary: MakeHat produces a hat of mysterious, randomly-selected color!
-      operationId: Haberdasher_MakeHat
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Size"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Hat"
-  /twirp.example.haberdasher.Haberdasher/FindHat:
-    post:
-      summary: ""
-      operationId: Haberdasher_FindHat
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/FindHatRPC"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FindHatRPC"
-  /twirp.example.haberdasher.Haberdasher/ListHat:
-    post:
+  /hat:
+    get:
       summary: ""
       operationId: Haberdasher_ListHat
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListHatRPC"
+      parameters:
+        - name: filters
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Filter"
+            description: ""
       responses:
         "200":
           description: OK
@@ -54,6 +23,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListHatRPC"
+  "/hat/{hat_id}":
+    get:
+      summary: ""
+      operationId: Haberdasher_FindHat
+      parameters:
+        - name: hat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ""
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FindHatRPC"
 components:
   schemas:
     Size:

@@ -2,50 +2,59 @@ openapi: 3.0.3
 info:
   title: Haberdasher
   version: 1.0.0
+  description: Haberdasher service makes hats for clients.
 paths:
-  /hat:
-    get:
-      summary: ""
-      operationId: Haberdasher_ListHat
-      parameters:
-        - name: filters
-          in: query
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/Filter"
-            description: ""
+  /twirp.example.haberdasher.Haberdasher/MakeHat:
+    post:
+      summary: MakeHat produces a hat of mysterious, randomly-selected color!
+      operationId: Haberdasher_MakeHat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Size"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  undefined:
-                    $ref: "#/components/schemas/ListHatRPC"
-  "/hat/{hat_id}":
-    get:
+                $ref: "#/components/schemas/Hat"
+  /twirp.example.haberdasher.Haberdasher/FindHat:
+    post:
       summary: ""
       operationId: Haberdasher_FindHat
-      parameters:
-        - name: hat_id
-          in: path
-          required: true
-          schema:
-            type: string
-            description: ""
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FindHatRPC"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  undefined:
-                    $ref: "#/components/schemas/FindHatRPC"
+                $ref: "#/components/schemas/FindHatRPC"
+  /twirp.example.haberdasher.Haberdasher/ListHat:
+    post:
+      summary: ""
+      operationId: Haberdasher_ListHat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListHatRPC"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListHatRPC"
 components:
   schemas:
     Size:

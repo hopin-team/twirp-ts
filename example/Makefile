@@ -1,5 +1,5 @@
 
-PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
+PROTOC_GEN_TWIRP_BIN="../protoc-gen-twirp_ts"
 PROTOC_GEN_PROTOBUF_TS_BIN="./node_modules/.bin/protoc-gen-ts"
 PROTOC_GEN_TS_PROTO_BIN="./node_modules/.bin/protoc-gen-ts_proto"
 
