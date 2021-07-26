@@ -1,53 +1,61 @@
 import * as http from "http";
-import { parse } from 'querystring';
-import * as dotObject from 'dot-object';
+import { parse } from "querystring";
+import * as dotObject from "dot-object";
 import { MatchFunction, MatchResult } from "path-to-regexp";
 import { getRequestData } from "./request";
-import { BadRouteError, NotFoundError, TwirpError, TwirpErrorCode } from "./errors";
+import {
+  BadRouteError,
+  NotFoundError,
+  TwirpError,
+  TwirpErrorCode,
+} from "./errors";
 import { HttpClientOptions, NodeHttpRPC } from "./http.client";
 import { writeError } from "./server";
 
 export enum Pattern {
-  POST = 'post',
-  GET = 'get',
-  PATCH = 'patch',
-  PUT = 'put',
-  DELETE = 'delete',
+  POST = "post",
+  GET = "get",
+  PATCH = "patch",
+  PUT = "put",
+  DELETE = "delete",
 }
 
 export interface HttpRoute {
-  serviceName: string
-  methodName: string
-  packageName: string
-  matchingPath: string
-  matcher: MatchFunction
-  httpMethod: Pattern
-  bodyKey?: string
-  responseBodyKey?: string
-  additionalBindings?: HttpRoute
+  serviceName: string;
+  methodName: string;
+  packageName: string;
+  matchingPath: string;
+  matcher: MatchFunction;
+  httpMethod: Pattern;
+  bodyKey?: string;
+  responseBodyKey?: string;
+  additionalBindings?: HttpRoute;
 }
 
 type RouteRules = {
-  [key in Pattern]: HttpRoute[]
-}
+  [key in Pattern]: HttpRoute[];
+};
 
 /**
  * The Gateway proxies http requests to Twirp Compliant
  * handlers
  */
 export class Gateway {
-  constructor(public readonly routes: RouteRules) {
-  }
+  constructor(public readonly routes: RouteRules) {}
 
   /**
    * Middleware that rewrite the current request
    * to a Twirp compliant request
    */
   twirpRewrite(prefix = "/twirp") {
-    return (req: http.IncomingMessage, resp: http.ServerResponse, next: (err?: Error) => void) => {
+    return (
+      req: http.IncomingMessage,
+      resp: http.ServerResponse,
+      next: (err?: Error) => void
+    ) => {
       this.rewrite(req, resp, prefix)
         .then(() => next())
-        .catch(e => {
+        .catch((e) => {
           if (e instanceof TwirpError) {
             if (e.code !== TwirpErrorCode.NotFound) {
               writeError(resp, e);
@@ -55,8 +63,8 @@ export class Gateway {
               next();
             }
           }
-        })
-    }
+        });
+    };
   }
 
   /**
@@ -65,7 +73,11 @@ export class Gateway {
    * @param resp
    * @param prefix
    */
-  async rewrite(req: http.IncomingMessage, resp: http.ServerResponse, prefix = "/twirp") {
+  async rewrite(
+    req: http.IncomingMessage,
+    resp: http.ServerResponse,
+    prefix = "/twirp"
+  ) {
     const [match, route] = this.matchRoute(req);
 
     const body = await this.prepareTwirpBody(req, match, route);
@@ -76,7 +88,7 @@ export class Gateway {
     req.method = "POST";
     req.headers["content-type"] = "application/json";
 
-    (req as any).rawBody = Buffer.from(JSON.stringify(body))
+    (req as any).rawBody = Buffer.from(JSON.stringify(body));
 
     if (route.responseBodyKey) {
       const endFn = resp.end.bind(resp);
@@ -86,7 +98,7 @@ export class Gateway {
         } else {
           endFn(chunk);
         }
-      }
+      };
     }
   }
 
@@ -100,8 +112,8 @@ export class Gateway {
 
     return async (req: http.IncomingMessage, res: http.ServerResponse) => {
       try {
-        const [match, route] = this.matchRoute(req)
-        const body = await this.prepareTwirpBody(req, match, route)
+        const [match, route] = this.matchRoute(req);
+        const body = await this.prepareTwirpBody(req, match, route);
 
         const response = await client.request(
           `${route.packageName}.${route.serviceName}`,
@@ -113,9 +125,9 @@ export class Gateway {
         res.statusCode = 200;
         res.setHeader("content-type", "application/json");
 
-        let jsonResponse: string
+        let jsonResponse: string;
         if (route.responseBodyKey) {
-          jsonResponse = JSON.stringify({[route.responseBodyKey]: response});
+          jsonResponse = JSON.stringify({ [route.responseBodyKey]: response });
         } else {
           jsonResponse = JSON.stringify(response);
         }
@@ -124,7 +136,7 @@ export class Gateway {
       } catch (e) {
         writeError(res, e);
       }
-    }
+    };
   }
 
   /**
@@ -136,16 +148,20 @@ export class Gateway {
    * @param route
    * @protected
    */
-  protected async prepareTwirpBody(req: http.IncomingMessage, match: MatchResult, route: HttpRoute): Promise<Record<string, any>> {
-    const {query_string, ...params} = match.params as Record<string, any>;
+  protected async prepareTwirpBody(
+    req: http.IncomingMessage,
+    match: MatchResult,
+    route: HttpRoute
+  ): Promise<Record<string, any>> {
+    const { query_string, ...params } = match.params as Record<string, any>;
 
     let requestBody: Record<string, any> = {
       ...params,
     };
 
     if (query_string && route.bodyKey !== "*") {
-      const queryParams = this.parseQueryString(query_string)
-      requestBody = {...queryParams, ...requestBody}
+      const queryParams = this.parseQueryString(query_string);
+      requestBody = { ...queryParams, ...requestBody };
     }
 
     let body: Record<string, any> = {};
@@ -166,7 +182,7 @@ export class Gateway {
       }
     }
 
-    return {...body, ...requestBody}
+    return { ...body, ...requestBody };
   }
 
   /**
@@ -177,7 +193,11 @@ export class Gateway {
     const httpMethod = req.method?.toLowerCase() as Pattern;
 
     if (!httpMethod) {
-      throw new BadRouteError(`method not allowed`, req.method || "", req.url || "")
+      throw new BadRouteError(
+        `method not allowed`,
+        req.method || "",
+        req.url || ""
+      );
     }
 
     const routes = this.routes[httpMethod];
@@ -190,7 +210,7 @@ export class Gateway {
       }
     }
 
-    throw new NotFoundError(`url ${req.url} not found`)
+    throw new NotFoundError(`url ${req.url} not found`);
   }
 
   /**

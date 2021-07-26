@@ -2,7 +2,6 @@ import { TwirpContext } from "./context";
 import http from "http";
 import { BadRouteError, TwirpError, TwirpErrorCode } from "./errors";
 
-
 /**
  * Supported Twirp Content-Type
  */
@@ -16,11 +15,11 @@ export enum TwirpContentType {
  * Represent a Twirp request
  */
 export interface TwirpRequest {
-  prefix?: string
-  pkgService: string
-  method: string
-  contentType: TwirpContentType
-  mimeContentType: string
+  prefix?: string;
+  pkgService: string;
+  method: string;
+  contentType: TwirpContentType;
+  mimeContentType: string;
 }
 
 /**
@@ -29,9 +28,9 @@ export interface TwirpRequest {
  */
 export function getContentType(mimeType: string | undefined): TwirpContentType {
   switch (mimeType) {
-    case 'application/protobuf':
+    case "application/protobuf":
       return TwirpContentType.Protobuf;
-    case 'application/json':
+    case "application/json":
       return TwirpContentType.JSON;
     default:
       return TwirpContentType.Unknown;
@@ -44,7 +43,11 @@ export function getContentType(mimeType: string | undefined): TwirpContentType {
  * @param request
  * @param pathPrefix
  */
-export function validateRequest(ctx: TwirpContext, request: http.IncomingMessage, pathPrefix: string): TwirpRequest {
+export function validateRequest(
+  ctx: TwirpContext,
+  request: http.IncomingMessage,
+  pathPrefix: string
+): TwirpRequest {
   if (request.method !== "POST") {
     const msg = `unsupported method ${request.method} (only POST is allowed)`;
     throw new BadRouteError(msg, request.method || "", request.url || "");
@@ -69,7 +72,7 @@ export function validateRequest(ctx: TwirpContext, request: http.IncomingMessage
     throw new BadRouteError(msg, request.method || "", request.url || "");
   }
 
-  return {...path, mimeContentType, contentType: ctx.contentType};
+  return { ...path, mimeContentType, contentType: ctx.contentType };
 }
 
 /**
@@ -78,8 +81,7 @@ export function validateRequest(ctx: TwirpContext, request: http.IncomingMessage
  */
 export function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-
-    const reqWithRawBody: http.IncomingMessage & {rawBody?: Buffer} = req;
+    const reqWithRawBody: http.IncomingMessage & { rawBody?: Buffer } = req;
 
     if (reqWithRawBody.rawBody instanceof Buffer) {
       resolve(reqWithRawBody.rawBody);
@@ -87,22 +89,34 @@ export function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
     }
 
     const chunks: Buffer[] = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end', async () => {
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", async () => {
       const data = Buffer.concat(chunks);
       resolve(data);
     });
 
     req.on("error", (err) => {
       if (req.aborted) {
-        reject(new TwirpError(TwirpErrorCode.DeadlineExceeded, "failed to read request: deadline exceeded"));
+        reject(
+          new TwirpError(
+            TwirpErrorCode.DeadlineExceeded,
+            "failed to read request: deadline exceeded"
+          )
+        );
       } else {
-        reject(new TwirpError(TwirpErrorCode.Malformed, err.message).withCause(err));
+        reject(
+          new TwirpError(TwirpErrorCode.Malformed, err.message).withCause(err)
+        );
       }
     });
 
     req.on("close", () => {
-      reject(new TwirpError(TwirpErrorCode.Canceled, "failed to read request: context canceled"));
+      reject(
+        new TwirpError(
+          TwirpErrorCode.Canceled,
+          "failed to read request: context canceled"
+        )
+      );
     });
   });
 }
@@ -111,19 +125,21 @@ export function getRequestData(req: http.IncomingMessage): Promise<Buffer> {
  * Parses twirp url path
  * @param path
  */
-export function parseTwirpPath(path: string): Omit<TwirpRequest, "contentType" | "mimeContentType"> {
+export function parseTwirpPath(
+  path: string
+): Omit<TwirpRequest, "contentType" | "mimeContentType"> {
   const parts = path.split("/");
   if (parts.length < 2) {
     return {
       pkgService: "",
       method: "",
       prefix: "",
-    }
+    };
   }
 
   return {
     method: parts[parts.length - 1],
     pkgService: parts[parts.length - 2],
     prefix: parts.slice(0, parts.length - 2).join("/"),
-  }
+  };
 }

@@ -1,6 +1,6 @@
 {
   "name": "twirp-ts",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Typescript implementation of the Twirp protocol",
   "main": "build/twirp/index.js",
   "bin": {
@@ -10,8 +10,10 @@
     "url": "https://github.com/hopin-team/twirp-ts"
   },
   "scripts": {
-    "test": "jest",
     "build": "tsc",
+    "format": "prettier -w src/**/*.ts",
+    "lint": "prettier -c src/**/*.ts",
+    "test": "jest",
     "test:coverage": "jest --coverage"
   },
   "keywords": [
@@ -36,6 +38,7 @@
     "http-terminator": "^3.0.0",
     "jest": "^27.0.4",
     "openapi-types": "^9.1.0",
+    "prettier": "^2.3.2",
     "supertest": "^6.1.3",
     "ts-jest": "^27.0.3",
     "ts-proto": "^1.81.3",
