@@ -35,8 +35,6 @@ protobuf-ts: clean
 	--ts_out=$(OUT_DIR) \
 	--twirp_ts_opt="gateway" \
 	--twirp_ts_opt="index_file" \
-	--twirp_ts_opt="openapi_twirp" \
-    --twirp_ts_opt="openapi_gateway" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
 
