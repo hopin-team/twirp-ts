@@ -214,7 +214,7 @@ function genGatewayBody(ctx: any, httpOptions: HttpOption, message: DescriptorPr
 
   if (httpOptions.body === "*") {
     (schema as OpenAPIV3.ReferenceObject).$ref = `#/components/schemas/${message.name}`
-  } else {
+  } else if (httpOptions.body) {
     const subField = message.field.find(field => field.name === httpOptions.body);
 
     if (!subField) {
