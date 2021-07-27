@@ -49,7 +49,7 @@ export class ProtobuftsPlugin extends PluginBase<File> {
   };
 
   async generate(request: CodeGeneratorRequest): Promise<File[]> {
-    const params = this.parseParameters(this.parameters, request.parameter),
+    const params = this.parseOptions(this.parameters, request.parameter),
       registry = DescriptorRegistry.createFrom(request),
       symbols = new SymbolTable(),
       interpreter = new Interpreter(registry);
