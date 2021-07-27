@@ -6,7 +6,11 @@ import {
   SymbolTable,
 } from "@protobuf-ts/plugin-framework";
 import { File } from "./file";
-import { generateTwirp, generateTwirpClient, generateTwirpServer } from "./gen/twirp";
+import {
+  generateTwirp,
+  generateTwirpClient,
+  generateTwirpServer,
+} from "./gen/twirp";
 import { genGateway } from "./gen/gateway";
 import { createLocalTypeName } from "./local-type-name";
 import { Interpreter } from "./interpreter";
@@ -130,13 +134,13 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     const docs = [];
     if (params.openapi_twirp) {
       docs.push(
-        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.TWIRP)),
+        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.TWIRP))
       );
     }
 
     if (params.openapi_gateway) {
       docs.push(
-        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.GATEWAY)),
+        ...(await genOpenAPI(ctx, registry.allFiles(), OpenAPIType.GATEWAY))
       );
     }
 
@@ -144,20 +148,24 @@ export class ProtobuftsPlugin extends PluginBase<File> {
       const file = new File(`${doc.fileName}`);
       file.setContent(doc.content);
       files.push(file);
-    })
+    });
 
     return files;
   }
 
   // we support proto3-optionals, so we let protoc know
-  protected getSupportedFeatures = () => [CodeGeneratorResponse_Feature.PROTO3_OPTIONAL];
+  protected getSupportedFeatures = () => [
+    CodeGeneratorResponse_Feature.PROTO3_OPTIONAL,
+  ];
 }
 
-new ProtobuftsPlugin().run().then(() => {
-  process.exit(0);
-})
+new ProtobuftsPlugin()
+  .run()
+  .then(() => {
+    process.exit(0);
+  })
   .catch((e) => {
-    process.stderr.write('FAILED!');
+    process.stderr.write("FAILED!");
     process.stderr.write(e.message);
     process.stderr.write(e.stack);
     process.exit(1);
