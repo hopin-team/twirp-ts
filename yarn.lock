@@ -498,41 +498,41 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@protobuf-ts/plugin-framework@^2.0.0-alpha.27":
-  version "2.0.0-alpha.27"
-  resolved "https://registry.npmjs.org/@protobuf-ts/plugin-framework/-/plugin-framework-2.0.0-alpha.27.tgz"
-  integrity sha512-mOwxnGeRYEvgybdfmySMRumLCYxdAj1umtFbbtW66cZFCimYEaF4w9TsCw794rlXXmyIhvxVxG9SZbnwVdiq7Q==
+"@protobuf-ts/plugin-framework@2.0.0-alpha.28", "@protobuf-ts/plugin-framework@^2.0.0-alpha.28":
+  version "2.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/@protobuf-ts/plugin-framework/-/plugin-framework-2.0.0-alpha.28.tgz#b3b8611966ee115fccc0caf5c0c84b03097372ea"
+  integrity sha512-xYVRadGYK4k/gxwP+zEonoi7SMAJjgdUrgVRIdCMp2QXSxUCDgOpA+A+t+49GsshVh8dPhSBifmXu9rFN2gACA==
   dependencies:
-    "@protobuf-ts/runtime" "^2.0.0-alpha.27"
+    "@protobuf-ts/runtime" "^2.0.0-alpha.28"
     typescript ">=3.8.3 <4"
 
-"@protobuf-ts/plugin@^2.0.0-alpha.27":
-  version "2.0.0-alpha.27"
-  resolved "https://registry.npmjs.org/@protobuf-ts/plugin/-/plugin-2.0.0-alpha.27.tgz"
-  integrity sha512-CZ/tbRpk7UvbYaxB2SYnOP1fpVaMubEWCBdf+IY+k8IgumhWbdCTTp/0ffIdet7eBniQAVXLBoTbXh55S7WUNg==
+"@protobuf-ts/plugin@^2.0.0-alpha.28":
+  version "2.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/@protobuf-ts/plugin/-/plugin-2.0.0-alpha.28.tgz#dfc3e1af8679f59dfadeb241ac7f3c635fa09673"
+  integrity sha512-wNAvUs27usFWwKZ3hPWkEDJyta0H9acXvRePoXRlBMVJh++WmhdjOPGGDXqP8Brc5U0OMGSDoYFbCuTVzs+uDQ==
   dependencies:
-    "@protobuf-ts/plugin-framework" "^2.0.0-alpha.27"
-    "@protobuf-ts/protoc" "^2.0.0-alpha.27"
-    "@protobuf-ts/runtime" "^2.0.0-alpha.27"
-    "@protobuf-ts/runtime-rpc" "^2.0.0-alpha.27"
+    "@protobuf-ts/plugin-framework" "^2.0.0-alpha.28"
+    "@protobuf-ts/protoc" "^2.0.0-alpha.28"
+    "@protobuf-ts/runtime" "^2.0.0-alpha.28"
+    "@protobuf-ts/runtime-rpc" "^2.0.0-alpha.28"
     typescript ">=3.8.3 <4"
 
-"@protobuf-ts/protoc@^2.0.0-alpha.27":
-  version "2.0.0-alpha.27"
-  resolved "https://registry.npmjs.org/@protobuf-ts/protoc/-/protoc-2.0.0-alpha.27.tgz"
-  integrity sha512-4dAh2xNtNq6MIgBP3k2H2MTHvXRVMz8ZwVhiUXBtnyulL5UjZGs3OMxh8RgxGVqIbDJDoNOjmY+EJ2c9pUlcOQ==
+"@protobuf-ts/protoc@^2.0.0-alpha.28":
+  version "2.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/@protobuf-ts/protoc/-/protoc-2.0.0-alpha.28.tgz#1f30e7405914a90a4752e7af1f1ff9175401747a"
+  integrity sha512-m+94OrlRuETwqd7aDnWOpAyVtJYOWSR0zwFg++9obynUfrOHa53tlwxn17IIgdh6td9aBG23Tv2F1nOe0LRnrA==
 
-"@protobuf-ts/runtime-rpc@^2.0.0-alpha.27":
-  version "2.0.0-alpha.27"
-  resolved "https://registry.npmjs.org/@protobuf-ts/runtime-rpc/-/runtime-rpc-2.0.0-alpha.27.tgz"
-  integrity sha512-uANWrpQPLdFRDpKdzOJY2hoQ27YYvC3uvTZ4291FXZgmVklPfHGrPriGe1kjBsnxoazlwK6oZUkSNOS0jvImVg==
+"@protobuf-ts/runtime-rpc@^2.0.0-alpha.28":
+  version "2.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/@protobuf-ts/runtime-rpc/-/runtime-rpc-2.0.0-alpha.28.tgz#c2a68eeb7b0ac1cfd044876a2a48f647a9801dd5"
+  integrity sha512-qpLwzvltJxA1xoUuqh24AEDxFdm5U6bDHuRPzqtqPSiArpJGbpymXnN1LSFozn/kNPWJ835Jtzhw0AeXaStACg==
   dependencies:
-    "@protobuf-ts/runtime" "^2.0.0-alpha.27"
+    "@protobuf-ts/runtime" "^2.0.0-alpha.28"
 
-"@protobuf-ts/runtime@^2.0.0-alpha.27":
-  version "2.0.0-alpha.27"
-  resolved "https://registry.npmjs.org/@protobuf-ts/runtime/-/runtime-2.0.0-alpha.27.tgz"
-  integrity sha512-hLZxXFcL8I0zRmHRMjHbtiHI3HWCRnrmDZ4h1P1FmIMC/3eKbMeJkjxXZy56QJyNrf10ewCG0afOg8KETYZ2XQ==
+"@protobuf-ts/runtime@^2.0.0-alpha.28":
+  version "2.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/@protobuf-ts/runtime/-/runtime-2.0.0-alpha.28.tgz#402c0b9e8bc7408d6914897b758e50f69413fa1e"
+  integrity sha512-yiEVy9+DzOgZpM5hev8YWTulbURW+ZodR7gLZifnbdmvbanGkRR5ZM029CiXGsvjUl9+0D+eCHAf9/O4ZKkYsQ==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
