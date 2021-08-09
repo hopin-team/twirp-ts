@@ -36,7 +36,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
           ? Buffer.from(data as Uint8Array)
           : JSON.stringify(data);
       const url = new URL(options.baseUrl);
-      const isHttps = url.protocol === "https";
+      const isHttps = url.protocol === "https:";
 
       if (isHttps) {
         client = https;
