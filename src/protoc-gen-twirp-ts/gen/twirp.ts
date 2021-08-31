@@ -103,7 +103,7 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: Se
             ${method.name}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
                 const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeJSON(ctx,"request")};
                 const promise = this.rpc.request(
-                  "${file.package}.${service.name}",
+                  "${file.package ? file.package + "." : ""}${service.name}",
                   "${method.name}",
                   "application/json",
                   data as object,
@@ -143,7 +143,7 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service
             ${method.name}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
                 const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeProtobuf(ctx, "request")};
                 const promise = this.rpc.request(
-                  "${file.package}.${service.name}",
+                  "${file.package ? file.package + "." : ""}${service.name}",
                   "${method.name}",
                   "application/protobuf",
                   data,
@@ -227,7 +227,7 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
         export function create${importService}Server<T extends ${TwirpContext} = ${TwirpContext}>(service: ${importService}Twirp<T>) {
             return new ${TwirpServer}<${importService}Twirp, T>({
                 service,
-                packageName: "${file.package}",
+                packageName: "${file.package ?? ''}",
                 serviceName: "${importService}",
                 methodList: ${importService}MethodList,
                 matchRoute: match${importService}Route,

@@ -143,7 +143,9 @@ export class TwirpServer<
    * Returns the base URI for this twirp server
    */
   public baseURI() {
-    return `${this.pathPrefix}/${this.packageName}.${this.serviceName}`;
+    return `${this.pathPrefix}/${
+      this.packageName ? this.packageName + "." : ""
+    }${this.serviceName}`;
   }
 
   /**

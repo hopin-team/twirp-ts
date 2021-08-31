@@ -55,7 +55,10 @@ export function validateRequest(
 
   const path = parseTwirpPath(request.url || "");
 
-  if (path.pkgService !== ctx.packageName + "." + ctx.serviceName) {
+  if (
+    path.pkgService !==
+    (ctx.packageName ? ctx.packageName + "." : "") + ctx.serviceName
+  ) {
     const msg = `no handler for path ${request.url}`;
     throw new BadRouteError(msg, request.method || "", request.url || "");
   }
@@ -129,6 +132,7 @@ export function parseTwirpPath(
   path: string
 ): Omit<TwirpRequest, "contentType" | "mimeContentType"> {
   const parts = path.split("/");
+
   if (parts.length < 2) {
     return {
       pkgService: "",
