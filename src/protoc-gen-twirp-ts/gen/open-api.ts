@@ -155,7 +155,7 @@ function genGatewayPaths(ctx: any, file: FileDescriptorProto, service: ServiceDe
   return service.method.reduce((paths, method) => {
     const options = ctx.interpreter.readOptions(method);
 
-    if (!options && options["google.api.http"]) {
+    if (!options || options && !options["google.api.http"]) {
       return paths;
     }
 
