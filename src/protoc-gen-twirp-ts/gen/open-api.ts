@@ -75,7 +75,7 @@ function genTwirpPaths(ctx: any, file: FileDescriptorProto, service: ServiceDesc
   return service.method.reduce((paths, method) => {
     const description = genDescription(ctx, method);
 
-    paths[`/${file.package}.${service.name}/${method.name}`] = {
+    paths[`/${file.package ? file.package + "." : ""}${service.name}/${method.name}`] = {
       post: {
         summary: description,
         operationId: `${service.name}_${method.name}`,
