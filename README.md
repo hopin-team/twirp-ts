@@ -120,6 +120,26 @@ protoc \
 ```
 </details>
 
+<details>
+  <summary>using protobuf-ts on windows, Git Bash (click to see)</summary>
+
+```bash
+OUT_DIR="./generated"
+
+protoc \
+  -I ./protos \
+  --plugin=protoc-gen-ts=.\\node_modules\\.bin\\protoc-gen-ts.cmd \
+  --plugin=protoc-gen-twirp_ts=.\\node_modules\\.bin\\protoc-gen-twirp_ts.cmd \
+  --ts_opt=client_none \
+  --ts_opt=generate_dependencies \
+  --ts_out=${OUT_DIR} \
+  --twirp_ts_out=${OUT_DIR} \
+  ./protos/*.proto
+```
+</details>
+
+
+
 If you'd like the plugin to generate an `index.ts` file exporting all your generated code
 simply add `--twirp_ts_opt="index_file"`
 
