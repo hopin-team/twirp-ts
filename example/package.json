@@ -10,7 +10,7 @@
   "author": "Fabrizio Fenoglio",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "express": "^4.17.1",
     "twirp-ts": "^2.3.0",
     "@protobuf-ts/plugin": "^2.0.0-alpha.27",
