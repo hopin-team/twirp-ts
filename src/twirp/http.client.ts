@@ -56,6 +56,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
             port: url.port ? url.port : isHttps ? 443 : 8000,
             path: `${prefix}/${service}/${method}`,
             headers: {
+              ...(options.headers ? options.headers : {}),
               "Content-Type": contentType,
               "Content-Length":
                 contentType === "application/protobuf"
