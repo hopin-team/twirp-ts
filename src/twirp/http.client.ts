@@ -53,7 +53,7 @@ export const NodeHttpRPC: (options: HttpClientOptions) => Rpc = (options) => ({
             method: "POST",
             protocol: url.protocol,
             host: url.hostname,
-            port: url.port ? url.port : isHttps ? 443 : 8000,
+            port: url.port ? url.port : isHttps ? 443 : 80,
             path: `${prefix}/${service}/${method}`,
             headers: {
               ...(options.headers ? options.headers : {}),
