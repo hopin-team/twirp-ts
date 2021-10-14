@@ -311,8 +311,10 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
                 const body = JSON.parse(data.toString() || "{}");
                 request = ${relativeMessageName(ctx, file, method.inputType)}.${decodeJSON(ctx, "body")};
             } catch(e) {
-                const msg = "the json request could not be decoded";
-                throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
+                if (err instanceof Error) {
+                    const msg = "the json request could not be decoded";
+                    throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
+                }
             }
 
             if (interceptors && interceptors.length > 0) {
@@ -347,8 +349,10 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
             try {
                 request = ${relativeMessageName(ctx, file, method.inputType)}.${decodeProtobuf(ctx, "data")};
             } catch(e) {
-                const msg = "the protobuf request could not be decoded";
-                throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
+                if (err instanceof Error) {
+                    const msg = "the protobuf request could not be decoded";
+                    throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
+                }
             }
 
             if (interceptors && interceptors.length > 0) {
