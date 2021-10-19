@@ -311,7 +311,7 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
                 const body = JSON.parse(data.toString() || "{}");
                 request = ${relativeMessageName(ctx, file, method.inputType)}.${decodeJSON(ctx, "body")};
             } catch(e) {
-                if (err instanceof Error) {
+                if (e instanceof Error) {
                     const msg = "the json request could not be decoded";
                     throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
                 }
@@ -319,11 +319,11 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
 
             if (interceptors && interceptors.length > 0) {
                 const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>
-                response = await interceptor(ctx, request, (ctx, inputReq) => {
+                response = await interceptor(ctx, request!, (ctx, inputReq) => {
                     return service.${method.name}(ctx, inputReq);
                 });
             } else {
-                response = await service.${method.name}(ctx, request)
+                response = await service.${method.name}(ctx, request!)
             }
 
             return JSON.stringify(${relativeMessageName(ctx, file, method.outputType)}.${encodeJSON(ctx,"response")} as string);
@@ -349,7 +349,7 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
             try {
                 request = ${relativeMessageName(ctx, file, method.inputType)}.${decodeProtobuf(ctx, "data")};
             } catch(e) {
-                if (err instanceof Error) {
+                if (e instanceof Error) {
                     const msg = "the protobuf request could not be decoded";
                     throw new ${TwirpError}(${TwirpErrorCode}.Malformed, msg).withCause(e, true);
                 }
@@ -357,11 +357,11 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
 
             if (interceptors && interceptors.length > 0) {
                 const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>
-                response = await interceptor(ctx, request, (ctx, inputReq) => {
+                response = await interceptor(ctx, request!, (ctx, inputReq) => {
                     return service.${method.name}(ctx, inputReq);
                 });
             } else {
-                response = await service.${method.name}(ctx, request)
+                response = await service.${method.name}(ctx, request!)
             }
 
             return Buffer.from(${relativeMessageName(ctx, file, method.outputType)}.${encodeProtobuf(ctx, "response")});
