@@ -270,8 +270,10 @@ async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = Size.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -280,11 +282,11 @@ async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
       Size,
       Hat
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.MakeHat(ctx, inputReq);
     });
   } else {
-    response = await service.MakeHat(ctx, request);
+    response = await service.MakeHat(ctx, request!);
   }
 
   return JSON.stringify(
@@ -308,8 +310,10 @@ async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = FindHatRPC.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -318,11 +322,11 @@ async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
       FindHatRPC,
       FindHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.FindHat(ctx, inputReq);
     });
   } else {
-    response = await service.FindHat(ctx, request);
+    response = await service.FindHat(ctx, request!);
   }
 
   return JSON.stringify(
@@ -346,8 +350,10 @@ async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = ListHatRPC.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -356,11 +362,11 @@ async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
       ListHatRPC,
       ListHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.ListHat(ctx, inputReq);
     });
   } else {
-    response = await service.ListHat(ctx, request);
+    response = await service.ListHat(ctx, request!);
   }
 
   return JSON.stringify(
@@ -382,8 +388,10 @@ async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = Size.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -392,11 +400,11 @@ async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
       Size,
       Hat
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.MakeHat(ctx, inputReq);
     });
   } else {
-    response = await service.MakeHat(ctx, request);
+    response = await service.MakeHat(ctx, request!);
   }
 
   return Buffer.from(Hat.toBinary(response));
@@ -414,8 +422,10 @@ async function handleFindHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = FindHatRPC.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -424,11 +434,11 @@ async function handleFindHatProtobuf<T extends TwirpContext = TwirpContext>(
       FindHatRPC,
       FindHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.FindHat(ctx, inputReq);
     });
   } else {
-    response = await service.FindHat(ctx, request);
+    response = await service.FindHat(ctx, request!);
   }
 
   return Buffer.from(FindHatRPC.toBinary(response));
@@ -446,8 +456,10 @@ async function handleListHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = ListHatRPC.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -456,11 +468,11 @@ async function handleListHatProtobuf<T extends TwirpContext = TwirpContext>(
       ListHatRPC,
       ListHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.ListHat(ctx, inputReq);
     });
   } else {
-    response = await service.ListHat(ctx, request);
+    response = await service.ListHat(ctx, request!);
   }
 
   return Buffer.from(ListHatRPC.toBinary(response));
