@@ -323,7 +323,7 @@ function genSchema(ctx: any, schemas: OpenAPIV3.ComponentsObject["schemas"], typ
 
   const descriptor = registry.resolveTypeName(typeName) as DescriptorProto;
 
-  if (schemas![localName] || registry.isSyntheticElement(descriptor)) {
+  if (schemas![localName]) {
     return;
   }
 
@@ -344,11 +344,26 @@ function genSchema(ctx: any, schemas: OpenAPIV3.ComponentsObject["schemas"], typ
   }
 
   descriptor.field.forEach((field) => {
-    if (field.type !== FieldDescriptorProto_Type.MESSAGE) {
+    if (field.type !== FieldDescriptorProto_Type.MESSAGE || !registry.isMapField(field)) {
       return;
     }
 
-    if (registry.isSyntheticElement(descriptor)) {
+    if (registry.isMapField(field)) {
+      const entry = registry.resolveTypeName(field.typeName!)
+      if (DescriptorProto.is(entry)) {
+        const valueField = entry.field.find(fd => fd.number === 2);
+
+        if (!valueField) {
+          return;
+        }
+
+        if (valueField.type !== FieldDescriptorProto_Type.MESSAGE) {
+          return;
+        }
+
+        field = valueField
+      }
+    } else if (registry.isSyntheticElement(descriptor)) {
       return;
     }
 
@@ -501,18 +516,18 @@ function genField(ctx: any, field: FieldDescriptorProto): OpenAPIV3.ReferenceObj
               type: genScalar(scalar)
             }
           }
-        } else if (EnumDescriptorProto.is(field)) {
+        } else if (EnumDescriptorProto.is(mapTypeValue)) {
           openApiType = {
             type: "object",
             additionalProperties: {
-              ...genEnum(field)
+              ...genEnum(mapTypeValue)
             }
           }
-        } else if (DescriptorProto.is(field)) {
+        } else if (DescriptorProto.is(mapTypeValue)) {
           openApiType = {
             type: "object",
             additionalProperties: {
-              $ref: genRef(ctx, field.name!),
+              $ref: `#/components/schemas/${mapTypeValue.name}`,
             }
           }
         } else {

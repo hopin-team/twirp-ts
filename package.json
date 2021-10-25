@@ -1,6 +1,6 @@
 {
   "name": "twirp-ts",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Typescript implementation of the Twirp protocol",
   "main": "build/twirp/index.js",
   "bin": {
@@ -23,14 +23,14 @@
   "author": "Fabrizio Fenoglio",
   "license": "MIT",
   "dependencies": {
-    "@protobuf-ts/plugin-framework": "2.0.0-alpha.28",
+    "@protobuf-ts/plugin-framework": "^2.0.7",
     "dot-object": "^2.1.4",
     "path-to-regexp": "^6.2.0",
     "ts-poet": "^4.5.0",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@protobuf-ts/plugin": "^2.0.0-alpha.28",
+    "@protobuf-ts/plugin": "^2.0.7",
     "@types/dot-object": "^2.1.2",
     "@types/jest": "^26.0.23",
     "@types/node": "^15.12.2",
