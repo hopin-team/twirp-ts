@@ -1,6 +1,6 @@
 {
   "name": "twirp-ts",
-  "version": "2.4.1-alpha",
+  "version": "2.4.1",
   "description": "Typescript implementation of the Twirp protocol",
   "main": "build/twirp/index.js",
   "bin": {
