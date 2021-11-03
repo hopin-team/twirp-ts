@@ -47,5 +47,13 @@
   "peerDependencies": {
     "@protobuf-ts/plugin": "^2.0.0-alpha.27",
     "ts-proto": "^1.81.3"
+  },
+  "peerDependenciesMeta": {
+    "@protobuf-ts/plugin": {
+      "optional": true
+    },
+    "ts-proto": {
+      "optional": true
+    }
   }
 }
