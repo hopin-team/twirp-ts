@@ -47,8 +47,8 @@ export class ProtobuftsPlugin extends PluginBase<File> {
       description: "Only server will be generated (overrides 'standalone')",
     },
     camel_case: {
-      description: "Generates with method names in camel case."
-    }
+      description: "Generates with method names in camel case.",
+    },
   };
 
   async generate(request: CodeGeneratorRequest): Promise<File[]> {
