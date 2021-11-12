@@ -381,31 +381,22 @@ const protobufClient = new HaberdasherClientProtobuf(NodeHttpRPC({
 }));
 ```
 
-You can check the [full example](./example/client.ts) on how to integrate the client with `axios`.
+For us in the browser, you can use the provided `fetch` based implementation,
 
-Here is a snippet:
+For example:
 
 ```ts
-const client = axios.create({
-    baseURL: "http://localhost:8080/twirp",
-})
-
-const implementation: Rpc = {
-    request(service, method, contentType, data) {
-        return client.post(`${service}/${method}`, data, {
-            responseType: contentType === "application/protobuf" ? 'arraybuffer' : "json",
-            headers: {
-                "content-type": contentType,
-            }
-        }).then(response => {
-            return response.data
-        });
-    }
-}
-
-export const jsonClient = new HaberdasherClientJSON(implementation);
-export const protobufClient = new HaberdasherClientProtobuf(implementation);
+export const jsonClient = new HaberdasherClientJSON(FetchRPC({
+  baseUrl: "http://localhost:8000/twirp",
+}));
+export const protobufClient = new HaberdasherClientProtobuf(FetchRPC({
+  baseUrl: "http://localhost:8000/twirp",
+}));
 ```
+
+Alternatively provided your own implementation. 
+
+You can check the [full example](./example/client.ts) on how to integrate the client with `axios`.
 
 ## Open API V3
 
