@@ -1,6 +1,6 @@
 {
   "name": "twirp-ts",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "Typescript implementation of the Twirp protocol",
   "main": "build/twirp/index.js",
   "bin": {
@@ -31,7 +31,7 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@protobuf-ts/plugin": "^2.0.7",
+    "@protobuf-ts/plugin": "^2.5.0",
     "@types/dot-object": "^2.1.2",
     "@types/jest": "^26.0.23",
     "@types/node": "^15.12.2",
@@ -46,7 +46,7 @@
     "typescript": "^4.3.2"
   },
   "peerDependencies": {
-    "@protobuf-ts/plugin": "^2.0.0-alpha.27",
+    "@protobuf-ts/plugin": "^2.5.0",
     "ts-proto": "^1.81.3"
   },
   "peerDependenciesMeta": {

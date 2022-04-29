@@ -81,7 +81,7 @@ function genClient(ctx: any, file: FileDescriptorProto, service: ServiceDescript
 function genTwirpClientInterface(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${formatMethodName(ctx, method.name)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}>
+            ${formatMethodName(ctx, method.name!)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}>
         `
     });
 
@@ -101,11 +101,11 @@ function genTwirpClientInterface(ctx: any, file: FileDescriptorProto, service: S
 function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${formatMethodName(ctx, method.name)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
+            ${formatMethodName(ctx, method.name!)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
                 const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeJSON(ctx,"request")};
                 const promise = this.rpc.request(
                   "${file.package ? file.package + "." : ""}${service.name}",
-                  "${formatMethodName(ctx, method.name)}",
+                  "${formatMethodName(ctx, method.name!)}",
                   "application/json",
                   data as object,
                 );
@@ -116,7 +116,7 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: Se
 
     const bindings = service.method.map((method) => {
         return code`
-            this.${formatMethodName(ctx, method.name)}.bind(this);
+            this.${formatMethodName(ctx, method.name!)}.bind(this);
         `
     })
 
@@ -141,11 +141,11 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: Se
 function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const methods = service.method.map((method) => {
         return code`
-            ${formatMethodName(ctx, method.name)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
+            ${formatMethodName(ctx, method.name!)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
                 const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeProtobuf(ctx, "request")};
                 const promise = this.rpc.request(
                   "${file.package ? file.package + "." : ""}${service.name}",
-                  "${formatMethodName(ctx, method.name)}",
+                  "${formatMethodName(ctx, method.name!)}",
                   "application/protobuf",
                   data,
                 );
@@ -156,7 +156,7 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service
 
     const bindings = service.method.map((method) => {
         return code`
-            this.${formatMethodName(ctx, method.name)}.bind(this);
+            this.${formatMethodName(ctx, method.name!)}.bind(this);
         `
     })
 
@@ -183,16 +183,16 @@ function genTwirpService(ctx: any, file: FileDescriptorProto, service: ServiceDe
 
     const serverMethods = service.method.map((method) => {
         return code`
-            ${formatMethodName(ctx, method.name)}(ctx: T, request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}>
+            ${formatMethodName(ctx, method.name!)}(ctx: T, request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}>
         `
     })
 
     const methodEnum = service.method.map((method) => {
-        return code`${formatMethodName(ctx, method.name)} = "${formatMethodName(ctx, method.name)}",`
+        return code`${formatMethodName(ctx, method.name!)} = "${formatMethodName(ctx, method.name!)}",`
     })
 
     const methodList = service.method.map((method) => {
-        return code`${importService}Method.${formatMethodName(ctx, method.name)}`
+        return code`${importService}Method.${formatMethodName(ctx, method.name!)}`
     })
 
     return code`
@@ -249,11 +249,11 @@ function genServer(ctx: any, file: FileDescriptorProto, service: ServiceDescript
  */
 function genRouteHandler(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     const cases = service.method.map(method => code`
-    case "${formatMethodName(ctx, method.name)}":
+    case "${formatMethodName(ctx, method.name!)}":
         return async (ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) => {
-            ctx = {...ctx, methodName: "${formatMethodName(ctx, method.name)}" }
+            ctx = {...ctx, methodName: "${formatMethodName(ctx, method.name!)}" }
             await events.onMatch(ctx);
-            return handle${formatMethodName(ctx, method.name)}Request(ctx, service, data, interceptors)
+            return handle${formatMethodName(ctx, method.name!, service.name)}Request(ctx, service, data, interceptors)
         }
     `)
 
@@ -279,12 +279,12 @@ function genRouteHandler(ctx: any, file: FileDescriptorProto, service: ServiceDe
 function genHandleRequestMethod(ctx: any, file: FileDescriptorProto, service: ServiceDescriptorProto) {
     return service.method.map(method => {
         return code`
-        function handle${formatMethodName(ctx, method.name)}Request<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]): Promise<string | Uint8Array> {
+        function handle${formatMethodName(ctx, method.name!, service.name)}Request<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]): Promise<string | Uint8Array> {
             switch (ctx.contentType) {
                 case ${TwirpContentType}.JSON:
-                    return handle${formatMethodName(ctx, method.name)}JSON<T>(ctx, service, data, interceptors);
+                    return handle${formatMethodName(ctx, method.name!, service.name)}JSON<T>(ctx, service, data, interceptors);
                 case ${TwirpContentType}.Protobuf:
-                    return handle${formatMethodName(ctx, method.name)}Protobuf<T>(ctx, service, data, interceptors);
+                    return handle${formatMethodName(ctx, method.name!, service.name)}Protobuf<T>(ctx, service, data, interceptors);
                 default:
                     const msg = "unexpected Content-Type";
                     throw new ${TwirpError}(${TwirpErrorCode}.BadRoute, msg);
@@ -304,7 +304,7 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
     return service.method.map(method => {
         return code`
 
-        async function handle${formatMethodName(ctx, method.name)}JSON<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) {
+        async function handle${formatMethodName(ctx, method.name!, service.name)}JSON<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) {
             let request: ${relativeMessageName(ctx, file, method.inputType)}
             let response: ${relativeMessageName(ctx, file, method.outputType)}
 
@@ -321,10 +321,10 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
             if (interceptors && interceptors.length > 0) {
                 const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>
                 response = await interceptor(ctx, request!, (ctx, inputReq) => {
-                    return service.${formatMethodName(ctx, method.name)}(ctx, inputReq);
+                    return service.${formatMethodName(ctx, method.name!)}(ctx, inputReq);
                 });
             } else {
-                response = await service.${formatMethodName(ctx, method.name)}(ctx, request!)
+                response = await service.${formatMethodName(ctx, method.name!)}(ctx, request!)
             }
 
             return JSON.stringify(${relativeMessageName(ctx, file, method.outputType)}.${encodeJSON(ctx,"response")} as string);
@@ -343,7 +343,7 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
     return service.method.map(method => {
         return code`
 
-        async function handle${formatMethodName(ctx, method.name)}Protobuf<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) {
+        async function handle${formatMethodName(ctx, method.name!, service.name)}Protobuf<T extends ${TwirpContext} = ${TwirpContext}>(ctx: T, service: ${service.name}Twirp, data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) {
             let request: ${relativeMessageName(ctx, file, method.inputType)}
             let response: ${relativeMessageName(ctx, file, method.outputType)}
 
@@ -359,10 +359,10 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
             if (interceptors && interceptors.length > 0) {
                 const interceptor = ${chainInterceptors}(...interceptors) as Interceptor<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>
                 response = await interceptor(ctx, request!, (ctx, inputReq) => {
-                    return service.${formatMethodName(ctx, method.name)}(ctx, inputReq);
+                    return service.${formatMethodName(ctx, method.name!)}(ctx, inputReq);
                 });
             } else {
-                response = await service.${formatMethodName(ctx, method.name)}(ctx, request!)
+                response = await service.${formatMethodName(ctx, method.name!)}(ctx, request!)
             }
 
             return Buffer.from(${relativeMessageName(ctx, file, method.outputType)}.${encodeProtobuf(ctx, "response")});
@@ -467,8 +467,9 @@ function createRelativeImportPath(currentPath: string, pathToImportFrom: string)
     return fromPath;
 }
 
-function formatMethodName(ctx: any, methodName?: string) {
+function formatMethodName(ctx: any, methodName: string, serviceName?: string) {
     if(methodName === undefined) return undefined;
 
-    return ctx.camelCase ? camelCase(methodName) : methodName;
+    serviceName = serviceName || ""
+    return ctx.camelCase ? camelCase(serviceName) + camelCase(methodName) : serviceName + methodName;
 }

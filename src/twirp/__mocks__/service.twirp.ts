@@ -38,7 +38,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
     this.ListHat.bind(this);
   }
   MakeHat(request: Size): Promise<Hat> {
-    const data = Size.toJson(request, { useProtoFieldName: true });
+    const data = Size.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "MakeHat",
@@ -51,7 +54,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
   }
 
   FindHat(request: FindHatRPC): Promise<FindHatRPC> {
-    const data = FindHatRPC.toJson(request, { useProtoFieldName: true });
+    const data = FindHatRPC.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "FindHat",
@@ -64,7 +70,10 @@ export class HaberdasherClientJSON implements HaberdasherClient {
   }
 
   ListHat(request: ListHatRPC): Promise<ListHatRPC> {
-    const data = ListHatRPC.toJson(request, { useProtoFieldName: true });
+    const data = ListHatRPC.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
     const promise = this.rpc.request(
       "twirp.example.haberdasher.Haberdasher",
       "ListHat",
@@ -167,7 +176,12 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "MakeHat" };
         await events.onMatch(ctx);
-        return handleMakeHatRequest(ctx, service, data, interceptors);
+        return handleHaberdasherMakeHatRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     case "FindHat":
       return async (
@@ -178,7 +192,12 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "FindHat" };
         await events.onMatch(ctx);
-        return handleFindHatRequest(ctx, service, data, interceptors);
+        return handleHaberdasherFindHatRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     case "ListHat":
       return async (
@@ -189,7 +208,12 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "ListHat" };
         await events.onMatch(ctx);
-        return handleListHatRequest(ctx, service, data, interceptors);
+        return handleHaberdasherListHatRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     default:
       events.onNotFound();
@@ -198,7 +222,7 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleMakeHatRequest<T extends TwirpContext = TwirpContext>(
+function handleHaberdasherMakeHatRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -206,16 +230,21 @@ function handleMakeHatRequest<T extends TwirpContext = TwirpContext>(
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleMakeHatJSON<T>(ctx, service, data, interceptors);
+      return handleHaberdasherMakeHatJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleMakeHatProtobuf<T>(ctx, service, data, interceptors);
+      return handleHaberdasherMakeHatProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     default:
       const msg = "unexpected Content-Type";
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
 
-function handleFindHatRequest<T extends TwirpContext = TwirpContext>(
+function handleHaberdasherFindHatRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -223,16 +252,21 @@ function handleFindHatRequest<T extends TwirpContext = TwirpContext>(
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleFindHatJSON<T>(ctx, service, data, interceptors);
+      return handleHaberdasherFindHatJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleFindHatProtobuf<T>(ctx, service, data, interceptors);
+      return handleHaberdasherFindHatProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     default:
       const msg = "unexpected Content-Type";
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
 
-function handleListHatRequest<T extends TwirpContext = TwirpContext>(
+function handleHaberdasherListHatRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -240,15 +274,22 @@ function handleListHatRequest<T extends TwirpContext = TwirpContext>(
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleListHatJSON<T>(ctx, service, data, interceptors);
+      return handleHaberdasherListHatJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleListHatProtobuf<T>(ctx, service, data, interceptors);
+      return handleHaberdasherListHatProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     default:
       const msg = "unexpected Content-Type";
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
-async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherMakeHatJSON<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -261,8 +302,10 @@ async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = Size.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -271,19 +314,24 @@ async function handleMakeHatJSON<T extends TwirpContext = TwirpContext>(
       Size,
       Hat
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.MakeHat(ctx, inputReq);
     });
   } else {
-    response = await service.MakeHat(ctx, request);
+    response = await service.MakeHat(ctx, request!);
   }
 
   return JSON.stringify(
-    Hat.toJson(response, { useProtoFieldName: true }) as string
+    Hat.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
 
-async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherFindHatJSON<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -296,8 +344,10 @@ async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = FindHatRPC.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -306,19 +356,24 @@ async function handleFindHatJSON<T extends TwirpContext = TwirpContext>(
       FindHatRPC,
       FindHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.FindHat(ctx, inputReq);
     });
   } else {
-    response = await service.FindHat(ctx, request);
+    response = await service.FindHat(ctx, request!);
   }
 
   return JSON.stringify(
-    FindHatRPC.toJson(response, { useProtoFieldName: true }) as string
+    FindHatRPC.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
 
-async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherListHatJSON<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -331,8 +386,10 @@ async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
     const body = JSON.parse(data.toString() || "{}");
     request = ListHatRPC.fromJson(body, { ignoreUnknownFields: true });
   } catch (e) {
-    const msg = "the json request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -341,18 +398,23 @@ async function handleListHatJSON<T extends TwirpContext = TwirpContext>(
       ListHatRPC,
       ListHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.ListHat(ctx, inputReq);
     });
   } else {
-    response = await service.ListHat(ctx, request);
+    response = await service.ListHat(ctx, request!);
   }
 
   return JSON.stringify(
-    ListHatRPC.toJson(response, { useProtoFieldName: true }) as string
+    ListHatRPC.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
   );
 }
-async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherMakeHatProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -364,8 +426,10 @@ async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = Size.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -374,17 +438,19 @@ async function handleMakeHatProtobuf<T extends TwirpContext = TwirpContext>(
       Size,
       Hat
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.MakeHat(ctx, inputReq);
     });
   } else {
-    response = await service.MakeHat(ctx, request);
+    response = await service.MakeHat(ctx, request!);
   }
 
   return Buffer.from(Hat.toBinary(response));
 }
 
-async function handleFindHatProtobuf<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherFindHatProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -396,8 +462,10 @@ async function handleFindHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = FindHatRPC.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -406,17 +474,19 @@ async function handleFindHatProtobuf<T extends TwirpContext = TwirpContext>(
       FindHatRPC,
       FindHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.FindHat(ctx, inputReq);
     });
   } else {
-    response = await service.FindHat(ctx, request);
+    response = await service.FindHat(ctx, request!);
   }
 
   return Buffer.from(FindHatRPC.toBinary(response));
 }
 
-async function handleListHatProtobuf<T extends TwirpContext = TwirpContext>(
+async function handleHaberdasherListHatProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
   service: HaberdasherTwirp,
   data: Buffer,
@@ -428,8 +498,10 @@ async function handleListHatProtobuf<T extends TwirpContext = TwirpContext>(
   try {
     request = ListHatRPC.fromBinary(data);
   } catch (e) {
-    const msg = "the protobuf request could not be decoded";
-    throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
   }
 
   if (interceptors && interceptors.length > 0) {
@@ -438,11 +510,11 @@ async function handleListHatProtobuf<T extends TwirpContext = TwirpContext>(
       ListHatRPC,
       ListHatRPC
     >;
-    response = await interceptor(ctx, request, (ctx, inputReq) => {
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
       return service.ListHat(ctx, inputReq);
     });
   } else {
-    response = await service.ListHat(ctx, request);
+    response = await service.ListHat(ctx, request!);
   }
 
   return Buffer.from(ListHatRPC.toBinary(response));
