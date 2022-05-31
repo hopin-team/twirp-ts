@@ -1,9 +1,12 @@
+.PHONY: all clean ts-proto protobuf-ts
 
-PROTOC_GEN_TWIRP_BIN="../protoc-gen-twirp_ts"
+PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
 PROTOC_GEN_PROTOBUF_TS_BIN="./node_modules/.bin/protoc-gen-ts"
 PROTOC_GEN_TS_PROTO_BIN="./node_modules/.bin/protoc-gen-ts_proto"
 
 OUT_DIR="./generated"
+
+all: protobuf-ts
 
 clean:
 	rm -rf $(OUT_DIR)
@@ -39,4 +42,3 @@ protobuf-ts: clean
     --twirp_ts_opt="openapi_gateway" \
 	--twirp_ts_out=$(OUT_DIR) \
 	./protos/*.proto
-

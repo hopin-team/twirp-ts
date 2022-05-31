@@ -251,7 +251,7 @@ function genRouteHandler(ctx: any, file: FileDescriptorProto, service: ServiceDe
     const cases = service.method.map(method => code`
     case "${formatMethodName(ctx, method.name!)}":
         return async (ctx: T, service: ${service.name}Twirp ,data: Buffer, interceptors?: ${Interceptor}<T, ${relativeMessageName(ctx, file, method.inputType)}, ${relativeMessageName(ctx, file, method.outputType)}>[]) => {
-            ctx = {...ctx, methodName: "${formatMethodName(ctx, method.name!)}" }
+            ctx.methodName = "${formatMethodName(ctx, method.name!)}"
             await events.onMatch(ctx);
             return handle${formatMethodName(ctx, method.name!, service.name)}Request(ctx, service, data, interceptors)
         }

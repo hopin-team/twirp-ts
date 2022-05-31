@@ -174,7 +174,7 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
         data: Buffer,
         interceptors?: Interceptor<T, Size, Hat>[]
       ) => {
-        ctx = { ...ctx, methodName: "MakeHat" };
+        ctx.methodName = "MakeHat";
         await events.onMatch(ctx);
         return handleHaberdasherMakeHatRequest(
           ctx,
@@ -190,7 +190,7 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
         data: Buffer,
         interceptors?: Interceptor<T, FindHatRPC, FindHatRPC>[]
       ) => {
-        ctx = { ...ctx, methodName: "FindHat" };
+        ctx.methodName = "FindHat";
         await events.onMatch(ctx);
         return handleHaberdasherFindHatRequest(
           ctx,
@@ -206,7 +206,7 @@ function matchHaberdasherRoute<T extends TwirpContext = TwirpContext>(
         data: Buffer,
         interceptors?: Interceptor<T, ListHatRPC, ListHatRPC>[]
       ) => {
-        ctx = { ...ctx, methodName: "ListHat" };
+        ctx.methodName = "ListHat";
         await events.onMatch(ctx);
         return handleHaberdasherListHatRequest(
           ctx,

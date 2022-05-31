@@ -7,7 +7,7 @@ export interface TwirpContext<
 > {
   readonly packageName: string;
   readonly serviceName: string;
-  readonly methodName: string;
+  methodName: string;
 
   readonly contentType: TwirpContentType;
   readonly req: Request;
