@@ -83,20 +83,3 @@ components:
             $ref: "#/components/schemas/Filter"
           description: ""
       description: ""
-    Filter:
-      properties:
-        order_by:
-          type: string
-          description: ""
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      description: ""
-    Pagination:
-      properties:
-        limit:
-          type: integer
-          description: ""
-        offset:
-          type: integer
-          description: ""
-      description: ""

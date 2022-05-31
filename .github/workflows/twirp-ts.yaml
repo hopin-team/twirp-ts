@@ -28,3 +28,17 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
          github-token: ${{ secrets.github_token }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.19.4'
+      - run: |
+          npm ci
+          npm link ../
+          make
+          git diff --exit-code
+        working-directory: ./example/
+      - run: |
+          make
+          git diff --exit-code
+        working-directory: ./src/twirp/__mocks__
