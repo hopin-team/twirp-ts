@@ -22,6 +22,9 @@ export class ProtobuftsPlugin extends PluginBase<File> {
     ts_proto: {
       description: "Use the ts-proto compiler (protobuf-ts by default)",
     },
+    protobuf_es: {
+      description: "Use the proto-gen-es compiler (protobuf-ts by default)",
+    },
     gateway: {
       description: "Generates the twirp gateway",
     },
@@ -56,9 +59,10 @@ export class ProtobuftsPlugin extends PluginBase<File> {
       registry = DescriptorRegistry.createFrom(request),
       symbols = new SymbolTable(),
       interpreter = new Interpreter(registry);
-
+    let lib = params.ts_proto ? "ts-proto" : "protobuf-ts"
+    if (params.protobuf_es) { lib = "protobuf-es"}
     const ctx = {
-      lib: params.ts_proto ? "ts-proto" : "protobuf-ts",
+      lib,
       emitDefaultValues: params.emit_default_values,
       symbols,
       registry,

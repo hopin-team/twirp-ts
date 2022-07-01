@@ -138,6 +138,27 @@ protoc \
 ```
 </details>
 
+<details>
+  <summary>using protobuf-es (click to see)</summary>
+
+```bash
+PROTOC_GEN_TWIRP_BIN="./node_modules/.bin/protoc-gen-twirp_ts"
+PROTOC_GEN_ES_BIN="./node_modules/.bin/protoc-gen-es"
+
+OUT_DIR="./generated"
+
+protobuf-es: clean
+	protoc \
+	-I ./protos \
+	--plugin=protoc-gen-es=$(PROTOC_GEN_ES_BIN) \
+	--plugin=protoc-gen-twirp_ts=$(PROTOC_GEN_TWIRP_BIN) \
+	--es_opt=target=ts \
+	--es_out=$(OUT_DIR) \
+	--twirp_ts_opt="protobuf_es" \
+	--twirp_ts_out=$(OUT_DIR) \
+	./protos/*.proto
+```
+</details>
 
 
 If you'd like the plugin to generate an `index.ts` file exporting all your generated code
