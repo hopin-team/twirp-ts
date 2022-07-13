@@ -102,7 +102,7 @@ function genTwripClientJSONImpl(ctx: any, file: FileDescriptorProto, service: Se
     const methods = service.method.map((method) => {
         return code`
             ${formatMethodName(ctx, method.name!)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
-                const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeJSON(ctx,"request")};
+                const data = ${requestMessageName(ctx, file, method.inputType)}.${encodeJSON(ctx,"request")};
                 const promise = this.rpc.request(
                   "${file.package ? file.package + "." : ""}${service.name}",
                   "${formatMethodName(ctx, method.name!)}",
@@ -142,7 +142,7 @@ function genTwripClientProtobufImpl(ctx: any, file: FileDescriptorProto, service
     const methods = service.method.map((method) => {
         return code`
             ${formatMethodName(ctx, method.name!)}(request: ${relativeMessageName(ctx, file, method.inputType)}): Promise<${relativeMessageName(ctx, file, method.outputType)}> {
-                const data = ${relativeMessageName(ctx, file, method.inputType)}.${encodeProtobuf(ctx, "request")};
+                const data = ${requestMessageName(ctx, file, method.inputType)}.${encodeProtobuf(ctx, "request")};
                 const promise = this.rpc.request(
                   "${file.package ? file.package + "." : ""}${service.name}",
                   "${formatMethodName(ctx, method.name!)}",
@@ -327,7 +327,7 @@ function genHandleJSONRequest(ctx: any, file: FileDescriptorProto, service: Serv
                 response = await service.${formatMethodName(ctx, method.name!)}(ctx, request!)
             }
 
-            return JSON.stringify(${relativeMessageName(ctx, file, method.outputType)}.${encodeJSON(ctx,"response")} as string);
+            return JSON.stringify(${responseMessageName(ctx, file, method.outputType)}.${encodeJSON(ctx,"response")} as string);
         }
     `
     })
@@ -365,7 +365,7 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
                 response = await service.${formatMethodName(ctx, method.name!)}(ctx, request!)
             }
 
-            return Buffer.from(${relativeMessageName(ctx, file, method.outputType)}.${encodeProtobuf(ctx, "response")});
+            return Buffer.from(${responseMessageName(ctx, file, method.outputType)}.${encodeProtobuf(ctx, "response")});
         }
     `
     })
@@ -373,7 +373,8 @@ function genHandleProtobufRequest(ctx: any, file: FileDescriptorProto, service: 
 
 enum SupportedLibs {
     TSProto = "ts-proto",
-    ProtobufTS = "protobuf-ts"
+    ProtobufTS = "protobuf-ts",
+    ProtobufES = "protobuf-es"
 }
 
 function validateLib(lib: string): SupportedLibs {
@@ -382,6 +383,8 @@ function validateLib(lib: string): SupportedLibs {
             return SupportedLibs.TSProto;
         case "protobuf-ts":
             return SupportedLibs.ProtobufTS;
+        case "protobuf-es":
+            return SupportedLibs.ProtobufES;
         default:
             throw new Error(`library ${lib} not supported`)
     }
@@ -403,7 +406,9 @@ function encodeJSON(ctx: any, dataName: string) {
     if (protoLib === SupportedLibs.TSProto) {
         return code`toJSON(${dataName})`
     }
-
+    if (protoLib === SupportedLibs.ProtobufES) {
+        return code`toJson({useProtoFieldName: true, emitDefaultValues: ${ctx.emitDefaultValues ? 'true' : 'false'}})`
+    }
     return code`toJson(${dataName}, {useProtoFieldName: true, emitDefaultValues: ${ctx.emitDefaultValues ? 'true' : 'false'}})`
 }
 
@@ -412,6 +417,9 @@ function encodeProtobuf(ctx: any, dataName: string) {
 
     if (protoLib === SupportedLibs.TSProto) {
         return code`encode(${dataName}).finish()`
+    }
+    if (protoLib === SupportedLibs.ProtobufES) {
+        return code`toBinary()`
     }
 
     return code`toBinary(${dataName})`
@@ -438,7 +446,7 @@ function relativeMessageName(ctx: any, file: FileDescriptorProto, messageName?: 
     }
 
     const messageType = createLocalTypeName(entry.descriptor, registry);
-    const relativePath = createRelativeImportPath(file.name!, entry.file.getFilename())
+    const relativePath = createRelativeImportPath(ctx, file.name!, entry.file.getFilename())
 
     return code`${imp(`${messageType}@${relativePath}`)}`;
 }
@@ -447,7 +455,7 @@ function relativeMessageName(ctx: any, file: FileDescriptorProto, messageName?: 
  * Create a relative path for an import statement like
  * `import {Foo} from "./foo"`
  */
-function createRelativeImportPath(currentPath: string, pathToImportFrom: string): string {
+function createRelativeImportPath(ctx: any, currentPath: string, pathToImportFrom: string): string {
     // create relative path to the file to import
     let fromPath = path.relative(path.dirname(currentPath), pathToImportFrom);
 
@@ -464,7 +472,34 @@ function createRelativeImportPath(currentPath: string, pathToImportFrom: string)
     if (!fromPath.startsWith('../') && !fromPath.startsWith('./')) {
         fromPath = './' + fromPath;
     }
+
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.ProtobufES) {
+        return fromPath + '_pb';
+    }
+
     return fromPath;
+}
+
+function requestMessageName(ctx: any, file: FileDescriptorProto, messageName?: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.ProtobufES) {
+        return "request"
+    }
+
+    return relativeMessageName(ctx, file, messageName)
+}
+
+function responseMessageName(ctx: any, file: FileDescriptorProto, messageName?: string) {
+    const protoLib = validateLib(ctx.lib);
+
+    if (protoLib === SupportedLibs.ProtobufES) {
+        return "response"
+    }
+
+    return relativeMessageName(ctx, file, messageName)
 }
 
 function formatMethodName(ctx: any, methodName: string, serviceName?: string) {
