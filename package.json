@@ -10,7 +10,6 @@
     "url": "https://github.com/hopin-team/twirp-ts"
   },
   "scripts": {
-    "prepare": "npm run build",
     "build": "tsc",
     "format": "prettier -w src/**/*.ts",
     "lint": "prettier -c src/**/*.ts",
