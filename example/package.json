@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "twirp-ts": "^2.4.0",
     "@protobuf-ts/plugin": "^2.0.0-alpha.27",
     "ts-proto": "^1.81.3"
