@@ -36,7 +36,7 @@ export type HttpRulePattern = {
 export interface HttpOption extends HttpRulePattern {
   body: string;
   responseBody: string
-  additional_bindings: HttpOption
+  additionalBindings: HttpOption[]
 }
 
 export async function genGateway(ctx: any, files: readonly FileDescriptorProto[]) {
@@ -55,9 +55,9 @@ export async function genGateway(ctx: any, files: readonly FileDescriptorProto[]
             service.name!,
           ));
 
-          if (httpSpec.additional_bindings) {
-            all.push(parseHttpOption(
-              httpSpec.additional_bindings,
+          if (httpSpec.additionalBindings) {
+            for(let spec of httpSpec.additionalBindings) all.push(parseHttpOption(
+              spec,
               current.package || "",
               method.name!,
               service.name!,
