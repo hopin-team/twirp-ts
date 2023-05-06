@@ -147,8 +147,8 @@ function genGatewayPaths(ctx: any, file: FileDescriptorProto, service: ServiceDe
 
     paths[`${httpSpec[httpMethod]}`] = pathItem;
 
-    if (httpSpec.additional_bindings) {
-      buildPath(method, httpSpec.additional_bindings, paths)
+    if (httpSpec.additionalBindings) {
+      for(let spec of httpSpec.additionalBindings) buildPath(method, spec, paths)
     }
   }
 
