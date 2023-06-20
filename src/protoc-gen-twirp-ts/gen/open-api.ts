@@ -344,7 +344,7 @@ function genSchema(ctx: any, schemas: OpenAPIV3.ComponentsObject["schemas"], typ
   }
 
   descriptor.field.forEach((field) => {
-    if (field.type !== FieldDescriptorProto_Type.MESSAGE || !registry.isMapField(field)) {
+    if (field.type !== FieldDescriptorProto_Type.MESSAGE) {
       return;
     }
 
